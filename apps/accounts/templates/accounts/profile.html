@@ -1,24 +1,21 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Profile</title>
-</head>
-<body>
-    <h2>Profile</h2>
-    <p>Welcome, {{ user.username }}!</p>
-    {% if user.email %}
-    <p>Email: {{ user.email }}</p>
-    {% endif %}
-    {% if user.first_name %}
-    <p>First name: {{ user.first_name }}</p>
-    {% endif %}
-    {% if user.last_name %}
-    <p>Last name: {{ user.last_name }}</p>
-    {% endif %}
+{% extends 'base.html' %}
 
-    <form method="post" action="{% url 'accounts:logout' %}">
-        {% csrf_token %}
-        <button type="submit">Logout</button>
-    </form>
-</body>
-</html>
+{% block title %}المكتبة الرقمية - حسابي{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title mb-4">أهلاً بك، {{ user.username }}</h2>
+                <p class="card-text">هذا هو ملفك الشخصي.</p>
+                <hr>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">تسجيل الخروج</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

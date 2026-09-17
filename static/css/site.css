@@ -1,0 +1,8 @@
+/* Project CSS for RTL Base Interface */
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+}

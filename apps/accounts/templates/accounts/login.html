@@ -1,15 +1,25 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-</head>
-<body>
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
-    </form>
-    <p>Don't have an account? <a href="{% url 'accounts:register' %}">Register</a></p>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}المكتبة الرقمية - تسجيل الدخول{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">تسجيل الدخول</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">دخول</button>
+                    </div>
+                </form>
+                <div class="mt-3 text-center">
+                    <p>ليس لديك حساب؟ <a href="{% url 'accounts:register' %}">إنشاء حساب</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}المكتبة الرقمية - الرئيسية{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 text-center">
+        <h1 class="mb-4">مرحباً بك في المكتبة الرقمية</h1>
+        <p class="lead mb-4">هذه المنصة تهدف إلى توفير مكتبة رقمية شاملة وسهلة الاستخدام.</p>
+        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">انضم إلينا الآن</a>
+    </div>
+</div>
+{% endblock %}
