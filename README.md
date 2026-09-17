@@ -1,194 +1,167 @@
-# Arabic Library
+# المكتبة العربية (Arabic Library)
 
-Arabic Library is an Arabic-first RTL digital library project built with Django.
+منصة مكتبة رقمية عربية تعتمد على نظام الاشتراكات، مبنية باستخدام إطار عمل Django مع واجهة مستخدم مصممة خصيصاً لتدعم اللغة العربية من اليمين إلى اليسار (RTL) باستخدام نهج Arabic-first.
 
-The V1 goal is to provide a simple subscription-based platform where users can:
+## هدف الإصدار الأول (V1 Goal)
+توفير منصة بسيطة بنظام اشتراكات تتيح للمستخدمين:
+- إنشاء حساب (Create an account)
+- تسجيل الدخول (Log in)
+- تصفح الكتب (Browse books)
+- تصفح المؤلفين والتصنيفات (Browse authors and categories)
+- البحث عن الكتب (Search for books)
+- طلب اشتراك يدوي (Request a manual subscription)
+- رفع إيصال الدفع (Upload a payment receipt)
+- قراءة الكتب المحمية بصيغة PDF (Read protected PDF books)
+- حفظ الكتب المفضلة (Save favorite books)
+- استئناف القراءة من آخر صفحة محفوظة (Resume reading from the last saved page)
 
-- create an account
-- log in
-- browse books
-- browse authors and categories
-- search for books
-- request a manual subscription
-- upload a payment receipt
-- read protected PDF books
-- save favorite books
-- resume reading from the last saved page
+## الحالة الحالية (Current Status)
+**المرحلة الحالية المكتملة:** Phase 07 COMPLETE
+**المرحلة التالية (لم تبدأ بعد):** Phase 08 NOT_STARTED
 
-The project is intentionally developed incrementally.
+### الميزات المنفذة حالياً
+- البنية التحتية للمشروع (Django Project Bootstrap).
+- هيكلية تطبيقات Django والتوجيه الأساسي (URL routing).
+- نظام المصادقة وحسابات المستخدمين (Authentication and User Accounts) باستخدام `Django built-in User`.
+- نماذج قواعد البيانات (Data Models) للكتالوج (المؤلف، التصنيف، الكتاب).
+- لوحة تحكم الإدارة (Django Admin) لإدارة محتوى الكتالوج.
+- واجهة مستخدم عربية (Arabic RTL Base Interface) تدعم التصفح الأساسي وتعتمد على Bootstrap 5 RTL.
+- الصفحة الرئيسية وصفحة تصفح الكتب باستخدام بيانات الكتالوج الحقيقية مع الاستعلامات المحسنة.
 
-## Current Status
+### الميزات المخطط لها لاحقاً (غير منفذة بعد)
+- صفحات التفاصيل للكتاب، المؤلف، والتصنيف (Phase 08).
+- البحث وتصفية الكتب بناءً على التصنيفات.
+- نظام الاشتراكات ورفع الإيصالات وعمليات التحقق.
+- عارض الـ PDF الآمن.
+- تتبع تقدم القراءة وحفظ المفضلة.
 
-Current phase:
-
-Phase 01 - Django Project Bootstrap
-
-Status:
-
-NOT_STARTED
-
-Phase 00 - Project Governance and Environment Preparation is complete.
-
-The Django application itself has not been created yet.
-
-## Technology Stack
-
-Backend:
-
+## التقنيات المستخدمة (Technology Stack)
+**Backend:**
 - Python 3.14
 - Django 5.2 LTS
+- SQLite (لقاعدة البيانات المحلية أثناء التطوير)
 
-Frontend:
-
+**Frontend:**
 - Django Templates
-- HTML5
-- CSS
+- HTML5 & CSS
 - Bootstrap 5 RTL
 - Vanilla JavaScript
 
-Database during local development:
+**أدوات أخرى:**
+- PDF.js (مخطط لعرض الكتب)
+- Git (للتحكم في الإصدارات)
 
-- SQLite
+## تطبيقات جانغو (Django Apps)
+- `core`: الصفحات الرئيسية والمشتركة.
+- `accounts`: إدارة المستخدمين والمصادقة.
+- `catalog`: إدارة الكتب والمؤلفين والتصنيفات.
+- `subscriptions`: (مخطط) إدارة الاشتراكات.
+- `reading`: (مخطط) إدارة تقدم القراءة والمفضلة.
 
-PDF reader:
+## نماذج البيانات (Models)
+**الحالية:**
+- `User` (مدمج في Django - Django built-in User)
+- `Author`
+- `Category`
+- `Book`
 
-- PDF.js
+**المخطط لها لاحقاً:**
+- `SubscriptionRequest`
+- `Subscription`
+- `Favorite`
+- `ReadingProgress`
 
-Administration:
+## إعداد بيئة التطوير وتشغيل المشروع
+**ملاحظات أمنية هامة:**
+- المتغير السري `SECRET_KEY` يعتمد على إعدادات البيئة (environment configuration).
+- الملفات والمجلدات التالية لا يتم رفعها إلى Git حفاظاً على الأمان والبيانات المحلية: `.env`, `db.sqlite3`, `media/`, و `.venv`.
 
-- Django Admin
+**خطوات التشغيل:**
+1. **إنشاء البيئة الافتراضية:**
+   ```bash
+   python -m venv .venv
+   ```
+2. **تفعيل البيئة الافتراضية:**
+   ```bash
+   # Windows (PowerShell)
+   .\.venv\Scripts\Activate.ps1
+   # Windows (Git Bash)
+   source .venv/Scripts/activate
+   # Linux/Mac
+   source .venv/bin/activate
+   ```
+3. **تثبيت الحزم المطلوبة (requirements):**
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+4. **تطبيق الهجرات (migrate):**
+   ```bash
+   python manage.py migrate
+   ```
+5. **فحص سلامة النظام:**
+   ```bash
+   python manage.py check
+   ```
+6. **تشغيل الاختبارات:**
+   ```bash
+   python manage.py test
+   ```
+   *(ملاحظة: يحتوي المشروع حالياً على 48 اختباراً، جميعها ناجحة ومجتازة بنسبة 100%).*
+7. **تشغيل الخادم المحلي (runserver):**
+   ```bash
+   python manage.py runserver
+   ```
 
-Version control:
+## بنية المشروع
+- `config/`: يحتوي على الإعدادات الرئيسية للمشروع والتوجيهات المركزية.
+- `apps/`: يحتوي على تطبيقات Django المستقلة مثل core و accounts و catalog.
+- `templates/`: قوالب HTML العامة والأساسية للمشروع.
+- `static/`: ملفات CSS و JavaScript والصور الثابتة.
+- `docs/`: ملفات التوثيق وحالة المشروع.
 
-- Git
+## Clean Coding (الكتابة النظيفة للكود)
+يطبق المشروع ممارسات الـ Clean Code فعلياً من خلال:
+- تجنب تكرار الكود (DRY) عبر استخدام القوالب الموروثة (Template Inheritance).
+- تحسين أداء قواعد البيانات ومنع مشكلة (N+1 queries) باستخدام `select_related`.
+- الالتزام بمبدأ المسؤولية الواحدة وتوزيع المهام بين التطبيقات المختلفة بشكل منطقي.
+- كتابة اختبارات شاملة لضمان استقرار الوظائف الحيوية.
 
-## V1 Django Applications
+## Vibe Coding / AI-Assisted Development
+يستخدم الذكاء الاصطناعي في هذا المشروع كمساعد متقدم (AI-Assisted Development / Vibe Coding) لتسريع كتابة الكود وبناء الهياكل الأساسية. مع ذلك، يتم الالتزام بقاعدة صارمة: لا يتم الاعتماد على الكود المولد بشكل أعمى؛ بل يتم مراجعته بدقة، اختباره، والتأكد من مطابقتها للمعايير المعمارية والأمنية قبل إجراء أي عملية `commit` أو اعتماده في بيئة التطوير.
 
-The planned Django applications are:
+## Git Workflow
+يتم إدارة المشروع باستخدام Git عبر خطوات منظمة ومدروسة. يتم تنفيذ التطوير على مراحل منفصلة (Phases) ولا يُسمح بالانتقال للمرحلة التالية إلا بعد التأكد من اجتياز الاختبارات وتحديث التوثيق. (حتى الآن، لم يتم الإشارة إلى رفع المشروع إلى GitHub).
 
-- core
-- accounts
-- catalog
-- subscriptions
-- reading
+## Linux (نظام لينكس)
+تم استخدام بيئة WSL2 Ubuntu فعلياً للتدرب على أوامر نظام لينكس وإدارتها بكفاءة. شملت الأوامر التي تم تطبيقها والتدرب عليها:
+`pwd`, `cd`, `ls`, `mkdir`, `touch`, `cp`, `mv`, `grep`, `find`, `chmod`, `tar`, `df`, `du`.
 
-## V1 Main Models
+## ملفات التوثيق (Documentation Files)
+يعتمد المشروع على مجموعة من ملفات التوثيق الحيوية التي تحافظ على استمراريته وتُعد المصدر الموثوق الوحيد لحالته:
+- `.agents/rules/project-constitution.md`
+- `docs/PROJECT_STATE.md`
+- `docs/PHASES.md`
+- `docs/HANDOFF.md`
+- `docs/DECISIONS.md`
+- `docs/TEST_LOG.md`
 
-The planned main models are:
+## الميزات المؤجلة (Deferred Features)
+هذه الميزات خارج نطاق الإصدار الأول (V1) وتم تأجيلها عن قصد:
+- EPUB and audiobooks (الكتب الصوتية وإيبوب)
+- Arabic text-to-speech (تحويل النص العربي إلى كلام)
+- Synchronized highlighting (التظليل المتزامن)
+- Realistic page turning (تقليب الصفحات الواقعي)
+- OCR (التعرف البصري على الحروف)
+- Online payment gateways (بوابات الدفع الإلكتروني)
+- Native mobile applications (تطبيقات الهواتف الأصلية)
+- AI recommendations & AI book assistant (توصيات ومساعد الذكاء الاصطناعي)
+- Advanced DRM (إدارة الحقوق الرقمية المتقدمة)
 
-- User (Django built-in)
-- Author
-- Category
-- Book
-- SubscriptionRequest
-- Subscription
-- Favorite
-- ReadingProgress
-
-## Development Environment
-
-Project location on the current development machine:
-
-D:\rafia\RAF
-
-Virtual environment:
-
-.venv
-
-Activate the environment in Git Bash using:
-
-source .venv/Scripts/activate
-
-Verify Python using:
-
-python --version
-
-Verify Django using:
-
-python -m django --version
-
-## Install Dependencies
-
-After activating the virtual environment:
-
-python -m pip install -r requirements.txt
-
-## Project Documentation
-
-Important project continuity files:
-
-- .agents/rules/project-constitution.md
-- docs/PROJECT_STATE.md
-- docs/PHASES.md
-- docs/HANDOFF.md
-- docs/DECISIONS.md
-- docs/TEST_LOG.md
-
-These documents are part of the project architecture.
-
-The repository is the source of truth.
-
-Do not rely on previous AI chat history when continuing development.
-
-## Antigravity Continuity
-
-Before a new Antigravity account modifies the project, it must read:
-
-1. .agents/rules/project-constitution.md
-2. README.md
-3. docs/PROJECT_STATE.md
-4. docs/PHASES.md
-5. docs/HANDOFF.md
-6. docs/DECISIONS.md
-7. docs/TEST_LOG.md
-
-It must then inspect:
-
-pwd
-git status
-git branch --show-current
-git log --oneline -5
-
-If documentation and repository state disagree, implementation must stop until the inconsistency is resolved.
-
-## Git Safety
-
-Before significant Git operations:
-
-pwd
-git status
-
-Do not use destructive Git commands without explicit approval.
-
-The Git identity for this repository is configured locally so that unrelated Git training repositories remain independent.
-
-## Deferred Features
-
-The following are intentionally outside V1:
-
-- EPUB
-- audiobooks
-- Arabic text-to-speech
-- synchronized highlighting
-- realistic page turning
-- OCR
-- online payment gateways
-- native mobile applications
-- AI recommendations
-- AI book assistant
-- advanced DRM
-
-## Development Rule
-
-Only one project phase should be implemented at a time.
-
-A phase is complete only after:
-
-- its acceptance criteria pass
-- relevant checks/tests are executed
-- PROJECT_STATE.md is updated
-- HANDOFF.md is updated
-- TEST_LOG.md is updated
-- Git state is reviewed
-
-Do not begin the next phase automatically.
+## مفاهيم المقرر المطبقة
+يجسد هذا المشروع التطبيق العملي لمجموعة من المفاهيم الأساسية:
+- **Linux:** إدارة بيئة التطوير باستخدام سطر الأوامر بفعالية.
+- **Git:** تتبع التغييرات وإدارة الإصدارات والعمل المنهجي خطوة بخطوة.
+- **GitHub:** (مفهوم يتم دراسته كمستودع بعيد للتعاون).
+- **Clean Coding:** كتابة كود قابل للقراءة، الصيانة، والاختبار بكفاءة.
+- **Vibe Coding:** الاستفادة من أدوات الذكاء الاصطناعي مع الحفاظ على مسؤولية المراجعة البشرية.
+- **Software Testing:** الاعتماد على كتابة اختبارات شاملة للتأكد من خلو المشروع من الأخطاء وتأمين الميزات (48 اختبار حالي).
