@@ -412,6 +412,10 @@ RESOLVED
 Status:
 PASSED
 
+Phase 00 governance commit:
+
+37ea6f3 docs: establish project governance and continuity
+
 Before Phase 00 can be marked COMPLETE, verify:
 
 - project constitution
