@@ -76,7 +76,7 @@ The planned Django applications are:
 
 The planned main models are:
 
-- User
+- User (Django built-in)
 - Author
 - Category
 - Book

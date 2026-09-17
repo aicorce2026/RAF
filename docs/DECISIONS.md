@@ -226,7 +226,7 @@ Decision:
 
 The intended main models are:
 
-- User
+- User (Django built-in)
 - Author
 - Category
 - Book
@@ -239,19 +239,21 @@ Additional persistent models require justification and approval.
 
 ---
 
-## ADR-011 - Custom User Model
+## ADR-011 - User Model
 
-Status: ACCEPTED
+Status: SUPERSEDED (See New Decision Below)
 
-Decision:
+Original Decision:
 
 Create a custom User model based on Django AbstractUser before other business models depend on users.
 
-Reason:
+New Decision:
 
-Changing AUTH_USER_MODEL later is significantly more difficult.
+Use Django's built-in User model for V1. Do not create a custom User model or set AUTH_USER_MODEL.
 
-The V1 custom User model should remain minimal.
+Reason for Change:
+
+V1 currently needs only standard Django user fields. Django's built-in User is sufficient and keeps the project beginner-friendly. Initial Django migrations have already been applied successfully, and introducing a custom user model now would add unnecessary migration complexity. Future custom user data should be handled through a separate profile model.
 
 ---
 

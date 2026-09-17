@@ -127,7 +127,7 @@ These applications have NOT been created yet.
 
 ## Planned Main Models
 
-- User
+- User (Django built-in)
 - Author
 - Category
 - Book

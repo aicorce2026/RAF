@@ -180,7 +180,7 @@ Do not create additional Django applications without explicit approval.
 
 The intended main models are:
 
-- `User`
+- `User` (Django built-in)
 - `Author`
 - `Category`
 - `Book`

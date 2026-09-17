@@ -116,7 +116,7 @@ Acceptance Criteria:
 
 ---
 
-## Phase 03 - Custom User and Authentication
+## Phase 03 - Authentication and User Accounts
 
 Status: NOT_STARTED
 
@@ -125,12 +125,10 @@ Implement the user system before business models depend on it.
 
 Main Model:
 
-User
+User (Django built-in)
 
 Tasks:
 
-- Create User based on AbstractUser.
-- Configure AUTH_USER_MODEL.
 - Implement registration.
 - Implement login.
 - Implement logout.

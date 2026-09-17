@@ -166,6 +166,7 @@ Do not implement any later phase.
 Do NOT:
 
 - create Django applications yet
+- create a custom User model (use Django's built-in User instead)
 - create models yet
 - create database migrations yet
 - install additional packages
