@@ -174,3 +174,64 @@ class CatalogViewTests(TestCase):
         response = self.client.get(self.book_list_url)
         self.assertNotContains(response, "secret.pdf")
         self.assertNotContains(response, book.pdf_file.url)
+
+
+class CatalogDetailViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.author = Author.objects.create(name="Detail Author", biography="Bio")
+        self.category = Category.objects.create(name="Detail Category", description="Desc")
+        self.pub_book = Book.objects.create(title="Pub Book", author=self.author, category=self.category, is_published=True, pdf_file="books/pdfs/pub.pdf")
+        self.unpub_book = Book.objects.create(title="Unpub Book", author=self.author, category=self.category, is_published=False, pdf_file="books/pdfs/unpub.pdf")
+
+    def test_book_detail_url_resolves(self):
+        resolver = resolve(f'/books/{self.pub_book.pk}/')
+        self.assertEqual(resolver.view_name, 'catalog:book_detail')
+
+    def test_published_book_detail_returns_200(self):
+        url = reverse('catalog:book_detail', args=[self.pub_book.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'catalog/book_detail.html')
+        self.assertContains(response, "Pub Book")
+        self.assertContains(response, "Detail Author")
+        self.assertContains(response, "Detail Category")
+        self.assertNotContains(response, "pub.pdf")
+        self.assertNotContains(response, self.pub_book.pdf_file.url)
+
+    def test_unpublished_book_detail_returns_404(self):
+        url = reverse('catalog:book_detail', args=[self.unpub_book.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_author_detail_returns_200_and_shows_only_published(self):
+        url = reverse('catalog:author_detail', args=[self.author.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detail Author")
+        self.assertContains(response, "Pub Book")
+        self.assertNotContains(response, "Unpub Book")
+
+    def test_category_detail_returns_200_and_shows_only_published(self):
+        url = reverse('catalog:category_detail', args=[self.category.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Detail Category")
+        self.assertContains(response, "Pub Book")
+        self.assertNotContains(response, "Unpub Book")
+
+    def test_anonymous_access_to_detail_pages(self):
+        self.client.logout()
+        b_url = reverse('catalog:book_detail', args=[self.pub_book.pk])
+        a_url = reverse('catalog:author_detail', args=[self.author.pk])
+        c_url = reverse('catalog:category_detail', args=[self.category.pk])
+        self.assertEqual(self.client.get(b_url).status_code, 200)
+        self.assertEqual(self.client.get(a_url).status_code, 200)
+        self.assertEqual(self.client.get(c_url).status_code, 200)
+
+    def test_book_list_links_to_detail(self):
+        url = reverse('catalog:book_list')
+        response = self.client.get(url)
+        self.assertContains(response, reverse('catalog:book_detail', args=[self.pub_book.pk]))
+        self.assertContains(response, reverse('catalog:author_detail', args=[self.author.pk]))
+        self.assertContains(response, reverse('catalog:category_detail', args=[self.category.pk]))

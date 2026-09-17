@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 08 - Book, Author, and Category Detail
+Phase: 09 - Book Search and Filtering
 
 Current phase status:
 
@@ -123,6 +123,7 @@ Catalog migration was successfully created and applied locally. All catalog and 
 Django Admin is configured with AuthorAdmin, CategoryAdmin, and BookAdmin, providing appropriate list displays, filters, and search functionality.
 The project uses an Arabic RTL base interface powered by Bootstrap 5 RTL, with shared navigation and a minimal home page. All authentication templates extend this base.
 The home page and /books/ listing view now use real database catalog queries (filtering only for published books and using select_related). No PDF links are exposed.
+Book, Author, and Category detail pages are implemented and public, enforcing is_published=True visibility.
 
 ---
 
@@ -146,13 +147,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 07 is complete.
+Phase 08 is complete.
 
 The next implementation phase is:
 
-Phase 08 - Book, Author, and Category Detail
+Phase 09 - Book Search and Filtering
 
-Do not begin Phase 08 until the user explicitly approves continuing.
+Do not begin Phase 09 until the user explicitly approves continuing.
 
 ---
 
@@ -162,7 +163,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 08 - Book, Author, and Category Detail
+Phase 09 - Book Search and Filtering
 
 Do not implement any later phase.
 

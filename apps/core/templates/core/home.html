@@ -20,10 +20,14 @@
                 <div class="col">
                     <div class="card h-100 shadow-sm">
                         <div class="card-body">
-                            <h5 class="card-title">{{ book.title }}</h5>
-                            <h6 class="card-subtitle mb-2 text-muted">{{ book.author.name }}</h6>
+                            <h5 class="card-title">
+                                <a href="{% url 'catalog:book_detail' book.pk %}" class="text-decoration-none text-dark">{{ book.title }}</a>
+                            </h5>
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                <a href="{% url 'catalog:author_detail' book.author.pk %}" class="text-decoration-none">{{ book.author.name }}</a>
+                            </h6>
                             <p class="card-text small">
-                                <strong>التصنيف:</strong> {{ book.category.name }}
+                                <strong>التصنيف:</strong> <a href="{% url 'catalog:category_detail' book.category.pk %}" class="text-decoration-none">{{ book.category.name }}</a>
                             </p>
                         </div>
                     </div>

@@ -87,3 +87,10 @@ class CoreHomeViewTests(TestCase):
     def test_view_all_books_link(self):
         response = self.client.get(self.home_url)
         self.assertContains(response, reverse('catalog:book_list'))
+
+    def test_home_page_links_to_detail(self):
+        book = Book.objects.create(title="Home Detail Book", author=self.author, category=self.category, is_published=True, pdf_file="books/pdfs/home.pdf")
+        response = self.client.get(self.home_url)
+        self.assertContains(response, reverse('catalog:book_detail', args=[book.pk]))
+        self.assertContains(response, reverse('catalog:author_detail', args=[self.author.pk]))
+        self.assertContains(response, reverse('catalog:category_detail', args=[self.category.pk]))

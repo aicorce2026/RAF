@@ -1,11 +1,15 @@
 {% extends 'base.html' %}
-
-{% block title %}المكتبة الرقمية - الكتب{% endblock %}
+{% block title %}المكتبة الرقمية - المؤلف: {{ author.name }}{% endblock %}
 
 {% block content %}
 <div class="row mt-4">
     <div class="col-12">
-        <h2 class="mb-4">الكتب المتاحة</h2>
+        <h2 class="mb-3">{{ author.name }}</h2>
+        {% if author.biography %}
+            <p class="lead">{{ author.biography|linebreaks }}</p>
+        {% endif %}
+        <hr>
+        <h4 class="mb-4">كتب المؤلف:</h4>
         {% if books %}
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
                 {% for book in books %}
@@ -15,9 +19,6 @@
                             <h5 class="card-title">
                                 <a href="{% url 'catalog:book_detail' book.pk %}" class="text-decoration-none text-dark">{{ book.title }}</a>
                             </h5>
-                            <h6 class="card-subtitle mb-2 text-muted">
-                                <a href="{% url 'catalog:author_detail' book.author.pk %}" class="text-decoration-none">{{ book.author.name }}</a>
-                            </h6>
                             <p class="card-text">
                                 <strong>التصنيف:</strong> <a href="{% url 'catalog:category_detail' book.category.pk %}" class="text-decoration-none">{{ book.category.name }}</a><br>
                                 {% if book.publication_year %}
@@ -33,8 +34,8 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info text-center" role="alert">
-                لا توجد كتب متاحة حالياً.
+            <div class="alert alert-info" role="alert">
+                لا توجد كتب متاحة لهذا المؤلف حالياً.
             </div>
         {% endif %}
     </div>

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}المكتبة الرقمية - {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-8 offset-md-2">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h2 class="card-title">{{ book.title }}</h2>
+                <h5 class="card-subtitle mb-3 text-muted">
+                    المؤلف: <a href="{% url 'catalog:author_detail' book.author.pk %}" class="text-decoration-none">{{ book.author.name }}</a>
+                </h5>
+                <h6 class="card-subtitle mb-4 text-muted">
+                    التصنيف: <a href="{% url 'catalog:category_detail' book.category.pk %}" class="text-decoration-none">{{ book.category.name }}</a>
+                </h6>
+                {% if book.publication_year %}
+                    <p><strong>سنة النشر:</strong> {{ book.publication_year }}</p>
+                {% endif %}
+                {% if book.description %}
+                    <hr>
+                    <h5>الوصف:</h5>
+                    <p class="card-text">{{ book.description|linebreaks }}</p>
+                {% endif %}
+                <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary mt-3">العودة إلى الكتب</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

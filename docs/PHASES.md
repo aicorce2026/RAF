@@ -272,7 +272,7 @@ Acceptance Criteria:
 
 ## Phase 08 - Book, Author and Category Detail Pages
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Provide detailed catalog navigation.
