@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 10 - Subscriptions and Requests
+Phase: 11 - Manual Subscription Workflow
 
 Current phase status:
 
@@ -125,6 +125,7 @@ The project uses an Arabic RTL base interface powered by Bootstrap 5 RTL, with s
 The home page and /books/ listing view now use real database catalog queries (filtering only for published books and using select_related). No PDF links are exposed.
 Book, Author, and Category detail pages are implemented and public, enforcing is_published=True visibility.
 A robust, case-insensitive book search and filtering system is available on the book listing page using Django Q objects.
+SubscriptionRequest and Subscription data models are fully implemented in apps/subscriptions with migration 0001_initial applied.
 
 ---
 
@@ -148,13 +149,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 09 is complete.
+Phase 10 is complete.
 
 The next implementation phase is:
 
-Phase 10 - Subscriptions and Requests
+Phase 11 - Manual Subscription Workflow
 
-Do not begin Phase 10 until the user explicitly approves continuing.
+Do not begin Phase 11 until the user explicitly approves continuing.
 
 ---
 
@@ -164,7 +165,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 10 - Subscriptions and Requests
+Phase 11 - Manual Subscription Workflow
 
 Do not implement any later phase.
 

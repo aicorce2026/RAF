@@ -326,7 +326,7 @@ Acceptance Criteria:
 
 ## Phase 10 - Subscription Data Models
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Create the data structure for manual subscriptions.

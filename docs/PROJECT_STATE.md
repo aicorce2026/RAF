@@ -11,10 +11,10 @@ Local path: D:\rafia\RAF
 Phase: 02 - Django Application Structure
 Status: COMPLETE
 
-Phase: 09 - Book Search and Filtering
+Phase: 10 - Subscription Data Models
 Status: COMPLETE
 
-Phase: 10 - Subscriptions and Requests
+Phase: 11 - Manual Subscription Workflow
 Status: NOT_STARTED
 
 Current branch: main
@@ -150,13 +150,13 @@ These models have NOT been implemented yet.
 
 ## Current Objective
 
-Phase 09 - Book Search and Filtering is complete.
+Phase 10 - Subscription Data Models is complete.
 
 The next phase is:
 
-Phase 10 - Subscriptions and Requests
+Phase 11 - Manual Subscription Workflow
 
-Phase 10 is waiting for explicit user approval before implementation begins.
+Phase 11 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -172,6 +172,7 @@ The Arabic RTL base interface, Bootstrap 5, shared navigation, and home page hav
 The home page and catalog listing page display real published catalog data without leaking PDF files.
 Detail pages for books, authors, and categories are implemented with proper 404 responses for unpublished items.
 Book search and filtering (by text, author, and category) is fully functional via GET parameters in the catalog listing.
+SubscriptionRequest and Subscription models created in apps/subscriptions with migration 0001_initial.
 
 ## Tests and Verification
 
@@ -209,6 +210,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 10 - Subscriptions and Requests
+Phase 11 - Manual Subscription Workflow
 
-Do not perform Phase 10 implementation before approval.
+Do not perform Phase 11 implementation before approval.
