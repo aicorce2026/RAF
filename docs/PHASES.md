@@ -406,7 +406,7 @@ Acceptance Criteria:
 
 ## Phase 12 - Subscription Access Control
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Protect book reading using server-side authorization.

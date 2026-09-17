@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 12 - Protected PDF Reader
+Phase: 13 - PDF Reader MVP
 
 Current phase status:
 
@@ -127,6 +127,7 @@ Book, Author, and Category detail pages are implemented and public, enforcing is
 A robust, case-insensitive book search and filtering system is available on the book listing page using Django Q objects.
 SubscriptionRequest and Subscription data models are fully implemented in apps/subscriptions with migration 0001_initial applied.
 Manual subscription workflow: users submit requests via /subscriptions/request/, view status at /subscriptions/. Admins approve/reject via Django Admin actions. Approval creates exactly one 30-day Subscription.
+Subscription access control: has_active_subscription() in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
 
 ---
 
@@ -150,13 +151,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 11 is complete.
+Phase 12 is complete.
 
 The next implementation phase is:
 
-Phase 12 - Protected PDF Reader
+Phase 13 - PDF Reader MVP
 
-Do not begin Phase 12 until the user explicitly approves continuing.
+Do not begin Phase 13 until the user explicitly approves continuing.
 
 ---
 
@@ -166,7 +167,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 12 - Protected PDF Reader
+Phase 13 - PDF Reader MVP
 
 Do not implement any later phase.
 

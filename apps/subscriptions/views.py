@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import SubscriptionRequestForm
 from .models import SubscriptionRequest
+from .services import get_active_subscription
 
 
 @login_required
@@ -24,4 +25,8 @@ def request_create(request):
 @login_required
 def request_list(request):
     requests = SubscriptionRequest.objects.filter(user=request.user).order_by('-created_at')
-    return render(request, 'subscriptions/request_list.html', {'requests': requests})
+    active_subscription = get_active_subscription(request.user)
+    return render(request, 'subscriptions/request_list.html', {
+        'requests': requests,
+        'active_subscription': active_subscription,
+    })

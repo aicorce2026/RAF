@@ -4,15 +4,12 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from datetime import timedelta
 from .models import SubscriptionRequest, Subscription
+from .services import has_active_subscription, get_active_subscription
+from .decorators import active_subscription_required
 
 
 REQUEST_LIST_URL = '/subscriptions/'
 REQUEST_CREATE_URL = '/subscriptions/request/'
-
-VALID_POST = {
-    'payment_method': 'bank_transfer',
-    'receipt_file': '',
-}
 
 
 def make_user(username='testuser', password='testpass123'):
@@ -28,8 +25,28 @@ def make_pending_request(user):
     )
 
 
+def make_approved_request(user):
+    return SubscriptionRequest.objects.create(
+        user=user,
+        payment_method='bank_transfer',
+        receipt_file='subscriptions/receipts/test.pdf',
+        status=SubscriptionRequest.Status.APPROVED,
+    )
+
+
+def make_active_subscription(user):
+    req = make_approved_request(user)
+    now = timezone.now()
+    return Subscription.objects.create(
+        user=user,
+        request=req,
+        start_at=now - timedelta(days=1),
+        end_at=now + timedelta(days=29),
+    )
+
+
 # ---------------------------------------------------------------------------
-# Phase 10 regression tests (model tests) kept intact above this file's scope
+# Phase 10 regression: SubscriptionRequest model tests
 # ---------------------------------------------------------------------------
 
 class SubscriptionRequestModelTests(TestCase):
@@ -141,8 +158,7 @@ class SubscriptionModelTests(TestCase):
 
     def test_str_representation(self):
         sub = self._make_subscription()
-        result = str(sub)
-        self.assertIn('subuser', result)
+        self.assertIn('subuser', str(sub))
 
     def test_active_subscription_is_active(self):
         sub = Subscription.objects.create(
@@ -218,10 +234,7 @@ class SubscriptionRequestViewTests(TestCase):
         import io
         fake_file = io.BytesIO(b'fake receipt')
         fake_file.name = 'r.pdf'
-        self.client.post(self.create_url, {
-            'payment_method': 'cash',
-            'receipt_file': fake_file,
-        })
+        self.client.post(self.create_url, {'payment_method': 'cash', 'receipt_file': fake_file})
         req = SubscriptionRequest.objects.get(user=self.user)
         self.assertEqual(req.user, self.user)
 
@@ -230,10 +243,7 @@ class SubscriptionRequestViewTests(TestCase):
         import io
         fake_file = io.BytesIO(b'receipt')
         fake_file.name = 'r.pdf'
-        self.client.post(self.create_url, {
-            'payment_method': 'bank_transfer',
-            'receipt_file': fake_file,
-        })
+        self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file})
         req = SubscriptionRequest.objects.get(user=self.user)
         self.assertEqual(req.status, SubscriptionRequest.Status.PENDING)
 
@@ -242,11 +252,7 @@ class SubscriptionRequestViewTests(TestCase):
         import io
         fake_file = io.BytesIO(b'receipt')
         fake_file.name = 'r.pdf'
-        self.client.post(self.create_url, {
-            'payment_method': 'bank_transfer',
-            'receipt_file': fake_file,
-            'status': 'APPROVED',
-        })
+        self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file, 'status': 'APPROVED'})
         req = SubscriptionRequest.objects.get(user=self.user)
         self.assertEqual(req.status, SubscriptionRequest.Status.PENDING)
 
@@ -255,11 +261,7 @@ class SubscriptionRequestViewTests(TestCase):
         import io
         fake_file = io.BytesIO(b'receipt')
         fake_file.name = 'r.pdf'
-        self.client.post(self.create_url, {
-            'payment_method': 'bank_transfer',
-            'receipt_file': fake_file,
-            'reviewed_by': self.other_user.pk,
-        })
+        self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file, 'reviewed_by': self.other_user.pk})
         req = SubscriptionRequest.objects.get(user=self.user)
         self.assertIsNone(req.reviewed_by)
 
@@ -268,20 +270,13 @@ class SubscriptionRequestViewTests(TestCase):
         import io
         fake_file = io.BytesIO(b'receipt')
         fake_file.name = 'r.pdf'
-        self.client.post(self.create_url, {
-            'payment_method': 'bank_transfer',
-            'receipt_file': fake_file,
-            'user': self.other_user.pk,
-        })
+        self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file, 'user': self.other_user.pk})
         for req in SubscriptionRequest.objects.all():
             self.assertEqual(req.user, self.user)
 
     def test_invalid_form_does_not_create_request(self):
         self.client.login(username='viewuser', password='testpass123')
-        self.client.post(self.create_url, {
-            'payment_method': '',
-            'receipt_file': '',
-        })
+        self.client.post(self.create_url, {'payment_method': '', 'receipt_file': ''})
         self.assertEqual(SubscriptionRequest.objects.filter(user=self.user).count(), 0)
 
     def test_anonymous_cannot_access_request_list(self):
@@ -304,7 +299,6 @@ class SubscriptionRequestViewTests(TestCase):
         make_pending_request(self.other_user)
         self.client.login(username='viewuser', password='testpass123')
         response = self.client.get(self.list_url)
-        # other user's requests shouldn't appear
         self.assertEqual(SubscriptionRequest.objects.filter(user=self.user).count(), 0)
 
     def test_receipt_url_not_in_request_list(self):
@@ -339,7 +333,6 @@ class SubscriptionAdminWorkflowTests(TestCase):
 
     def _run_action(self, action_name, queryset_pks):
         from django.contrib.admin.sites import site
-        from apps.subscriptions.models import SubscriptionRequest
         admin_instance = site._registry[SubscriptionRequest]
         request_obj = self.client.get('/admin/').wsgi_request
         request_obj.user = self.admin_user
@@ -384,7 +377,6 @@ class SubscriptionAdminWorkflowTests(TestCase):
     def test_repeated_approval_does_not_create_duplicate_subscription(self):
         req = self._pending_request()
         self._run_action('approve', [req.pk])
-        # Try to approve again (should be skipped, already APPROVED)
         self._run_action('approve', [req.pk])
         self.assertEqual(Subscription.objects.filter(request=req).count(), 1)
 
@@ -411,7 +403,6 @@ class SubscriptionAdminWorkflowTests(TestCase):
         self._run_action('approve', [req.pk])
         req.refresh_from_db()
         original_reviewed_at = req.reviewed_at
-        # Try to reject already-approved
         self._run_action('reject', [req.pk])
         req.refresh_from_db()
         self.assertEqual(req.status, SubscriptionRequest.Status.APPROVED)
@@ -422,8 +413,225 @@ class SubscriptionAdminWorkflowTests(TestCase):
         self._run_action('reject', [req.pk])
         req.refresh_from_db()
         original_reviewed_at = req.reviewed_at
-        # Try to approve already-rejected
         self._run_action('approve', [req.pk])
         req.refresh_from_db()
         self.assertEqual(req.status, SubscriptionRequest.Status.REJECTED)
         self.assertEqual(req.reviewed_at, original_reviewed_at)
+
+
+# ---------------------------------------------------------------------------
+# Phase 12: has_active_subscription service tests
+# ---------------------------------------------------------------------------
+
+class HasActiveSubscriptionServiceTests(TestCase):
+
+    def setUp(self):
+        self.user = make_user('svcuser')
+        self.now = timezone.now()
+
+    def test_anonymous_user_returns_false(self):
+        from django.contrib.auth.models import AnonymousUser
+        self.assertFalse(has_active_subscription(AnonymousUser()))
+
+    def test_none_returns_false(self):
+        self.assertFalse(has_active_subscription(None))
+
+    def test_authenticated_user_with_no_subscription_returns_false(self):
+        self.assertFalse(has_active_subscription(self.user))
+
+    def test_active_subscription_returns_true(self):
+        make_active_subscription(self.user)
+        self.assertTrue(has_active_subscription(self.user))
+
+    def test_expired_subscription_returns_false(self):
+        req = make_approved_request(self.user)
+        Subscription.objects.create(
+            user=self.user,
+            request=req,
+            start_at=self.now - timedelta(days=60),
+            end_at=self.now - timedelta(days=30),
+        )
+        self.assertFalse(has_active_subscription(self.user))
+
+    def test_future_subscription_returns_false(self):
+        req = make_approved_request(self.user)
+        Subscription.objects.create(
+            user=self.user,
+            request=req,
+            start_at=self.now + timedelta(days=5),
+            end_at=self.now + timedelta(days=35),
+        )
+        self.assertFalse(has_active_subscription(self.user))
+
+    def test_multiple_subscriptions_any_active_returns_true(self):
+        # One expired, one active
+        user2 = make_user('svcuser2')
+        req1 = make_approved_request(user2)
+        Subscription.objects.create(
+            user=user2,
+            request=req1,
+            start_at=self.now - timedelta(days=60),
+            end_at=self.now - timedelta(days=30),
+        )
+        req2 = SubscriptionRequest.objects.create(
+            user=user2,
+            payment_method='cash',
+            receipt_file='subscriptions/receipts/r2.pdf',
+            status=SubscriptionRequest.Status.APPROVED,
+        )
+        Subscription.objects.create(
+            user=user2,
+            request=req2,
+            start_at=self.now - timedelta(days=1),
+            end_at=self.now + timedelta(days=29),
+        )
+        self.assertTrue(has_active_subscription(user2))
+
+
+# ---------------------------------------------------------------------------
+# Phase 12: active_subscription_required decorator tests
+# ---------------------------------------------------------------------------
+
+from django.http import HttpResponse
+from django.test import RequestFactory
+
+# Create a minimal protected view for decorator testing
+@active_subscription_required
+def _protected_view(request):
+    return HttpResponse('OK', status=200)
+
+
+class ActiveSubscriptionDecoratorTests(TestCase):
+
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user = make_user('decuser')
+        self.now = timezone.now()
+
+    def _get_request(self, user=None, path='/protected/'):
+        request = self.factory.get(path)
+        if user is None:
+            from django.contrib.auth.models import AnonymousUser
+            request.user = AnonymousUser()
+        else:
+            request.user = user
+        return request
+
+    def test_anonymous_user_redirected_to_login(self):
+        request = self._get_request(user=None)
+        response = _protected_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response['Location'])
+
+    def test_authenticated_user_without_subscription_redirected(self):
+        request = self._get_request(user=self.user)
+        response = _protected_view(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/subscriptions/', response['Location'])
+
+    def test_expired_subscription_is_denied(self):
+        req = make_approved_request(self.user)
+        Subscription.objects.create(
+            user=self.user,
+            request=req,
+            start_at=self.now - timedelta(days=60),
+            end_at=self.now - timedelta(days=30),
+        )
+        request = self._get_request(user=self.user)
+        response = _protected_view(request)
+        self.assertEqual(response.status_code, 302)
+
+    def test_future_subscription_is_denied(self):
+        req = make_approved_request(self.user)
+        Subscription.objects.create(
+            user=self.user,
+            request=req,
+            start_at=self.now + timedelta(days=5),
+            end_at=self.now + timedelta(days=35),
+        )
+        request = self._get_request(user=self.user)
+        response = _protected_view(request)
+        self.assertEqual(response.status_code, 302)
+
+    def test_active_subscription_allows_access(self):
+        make_active_subscription(self.user)
+        request = self._get_request(user=self.user)
+        response = _protected_view(request)
+        self.assertEqual(response.status_code, 200)
+
+
+# ---------------------------------------------------------------------------
+# Phase 12: Subscription status UI tests
+# ---------------------------------------------------------------------------
+
+class SubscriptionStatusUITests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user = make_user('statususer')
+        self.other_user = make_user('otherstatususer')
+        self.list_url = reverse('subscriptions:request_list')
+
+    def test_authenticated_user_can_view_subscription_status(self):
+        self.client.login(username='statususer', password='testpass123')
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'حالة الاشتراك')
+
+    def test_active_subscription_dates_are_shown(self):
+        sub = make_active_subscription(self.user)
+        self.client.login(username='statususer', password='testpass123')
+        response = self.client.get(self.list_url)
+        self.assertContains(response, 'اشتراك نشط')
+        self.assertContains(response, sub.start_at.strftime('%Y-%m-%d'))
+        self.assertContains(response, sub.end_at.strftime('%Y-%m-%d'))
+
+    def test_no_active_subscription_shows_correct_state(self):
+        self.client.login(username='statususer', password='testpass123')
+        response = self.client.get(self.list_url)
+        self.assertContains(response, 'لا يوجد اشتراك نشط')
+
+    def test_another_users_subscription_data_not_exposed(self):
+        make_active_subscription(self.other_user)
+        self.client.login(username='statususer', password='testpass123')
+        response = self.client.get(self.list_url)
+        self.assertContains(response, 'لا يوجد اشتراك نشط')
+
+    def test_receipt_url_not_exposed_in_status_page(self):
+        make_active_subscription(self.user)
+        self.client.login(username='statususer', password='testpass123')
+        response = self.client.get(self.list_url)
+        self.assertNotContains(response, 'subscriptions/receipts')
+        self.assertNotContains(response, '/media/')
+
+
+# ---------------------------------------------------------------------------
+# Phase 12: Regression — public catalog pages remain public
+# ---------------------------------------------------------------------------
+
+class PublicCatalogRegressionTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        from apps.catalog.models import Author, Category, Book
+        self.author = Author.objects.create(name='Pub Author')
+        self.category = Category.objects.create(name='Pub Category')
+        self.book = Book.objects.create(
+            title='Public Book',
+            author=self.author,
+            category=self.category,
+            is_published=True,
+            pdf_file='books/pdfs/pub.pdf',
+        )
+
+    def test_home_remains_publicly_accessible(self):
+        response = self.client.get(reverse('core:home'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_book_list_remains_publicly_accessible(self):
+        response = self.client.get(reverse('catalog:book_list'))
+        self.assertEqual(response.status_code, 200)
+
+    def test_book_detail_remains_publicly_accessible(self):
+        response = self.client.get(reverse('catalog:book_detail', args=[self.book.pk]))
+        self.assertEqual(response.status_code, 200)
