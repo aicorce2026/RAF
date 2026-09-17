@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
+from apps.catalog.models import Author, Category, Book
 
 class CoreInterfaceTests(TestCase):
     def setUp(self):
@@ -52,3 +53,37 @@ class CoreInterfaceTests(TestCase):
         self.assertContains(response, reverse('accounts:logout'))
         # Ensure it's not just a regular href link
         self.assertNotContains(response, f'href="{reverse("accounts:logout")}"')
+
+    def test_navbar_books_link(self):
+        response = self.client.get(self.home_url)
+        self.assertContains(response, f'href="{reverse("catalog:book_list")}"')
+
+
+class CoreHomeViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.home_url = reverse('core:home')
+        self.author = Author.objects.create(name="Test Author")
+        self.category = Category.objects.create(name="Test Category")
+
+    def test_home_displays_published_books(self):
+        book = Book.objects.create(title="Published Book", author=self.author, category=self.category, is_published=True, pdf_file="books/pdfs/test.pdf")
+        response = self.client.get(self.home_url)
+        self.assertContains(response, "Published Book")
+        self.assertContains(response, "Test Author")
+        self.assertContains(response, "Test Category")
+
+    def test_home_does_not_display_unpublished_books(self):
+        book = Book.objects.create(title="Unpublished Book", author=self.author, category=self.category, is_published=False, pdf_file="books/pdfs/test.pdf")
+        response = self.client.get(self.home_url)
+        self.assertNotContains(response, "Unpublished Book")
+
+    def test_home_recent_book_limit(self):
+        for i in range(10):
+            Book.objects.create(title=f"Book {i}", author=self.author, category=self.category, is_published=True, pdf_file="books/pdfs/test.pdf")
+        response = self.client.get(self.home_url)
+        self.assertEqual(len(response.context['published_books']), 6)
+
+    def test_view_all_books_link(self):
+        response = self.client.get(self.home_url)
+        self.assertContains(response, reverse('catalog:book_list'))

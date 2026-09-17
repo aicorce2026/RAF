@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 07 - Home and Catalog Listing
+Phase: 08 - Book, Author, and Category Detail
 
 Current phase status:
 
@@ -122,6 +122,7 @@ Catalog data models (Author, Category, Book) are created with PROTECT foreign ke
 Catalog migration was successfully created and applied locally. All catalog and regression tests passed.
 Django Admin is configured with AuthorAdmin, CategoryAdmin, and BookAdmin, providing appropriate list displays, filters, and search functionality.
 The project uses an Arabic RTL base interface powered by Bootstrap 5 RTL, with shared navigation and a minimal home page. All authentication templates extend this base.
+The home page and /books/ listing view now use real database catalog queries (filtering only for published books and using select_related). No PDF links are exposed.
 
 ---
 
@@ -145,13 +146,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 06 is complete.
+Phase 07 is complete.
 
 The next implementation phase is:
 
-Phase 07 - Home and Catalog Listing
+Phase 08 - Book, Author, and Category Detail
 
-Do not begin Phase 07 until the user explicitly approves continuing.
+Do not begin Phase 08 until the user explicitly approves continuing.
 
 ---
 
@@ -161,7 +162,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 07 - Home and Catalog Listing
+Phase 08 - Book, Author, and Category Detail
 
 Do not implement any later phase.
 

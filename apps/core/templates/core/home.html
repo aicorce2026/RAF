@@ -7,7 +7,34 @@
     <div class="col-md-8 text-center">
         <h1 class="mb-4">مرحباً بك في المكتبة الرقمية</h1>
         <p class="lead mb-4">هذه المنصة تهدف إلى توفير مكتبة رقمية شاملة وسهلة الاستخدام.</p>
-        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg">انضم إلينا الآن</a>
+        <a href="{% url 'catalog:book_list' %}" class="btn btn-primary btn-lg">تصفح الكتب</a>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <h3 class="mb-4">أحدث الكتب المضافة</h3>
+        {% if published_books %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for book in published_books %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ book.title }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ book.author.name }}</h6>
+                            <p class="card-text small">
+                                <strong>التصنيف:</strong> {{ book.category.name }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-light text-center" role="alert">
+                لم يتم إضافة كتب بعد.
+            </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

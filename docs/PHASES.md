@@ -245,7 +245,7 @@ Acceptance Criteria:
 
 ## Phase 07 - Home Page and Catalog Listing
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Allow visitors to browse the library.

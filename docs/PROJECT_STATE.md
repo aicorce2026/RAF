@@ -11,10 +11,10 @@ Local path: D:\rafia\RAF
 Phase: 02 - Django Application Structure
 Status: COMPLETE
 
-Phase: 06 - Arabic RTL Base Interface
+Phase: 07 - Home Page and Catalog Listing
 Status: COMPLETE
 
-Phase: 07 - Home and Catalog Listing
+Phase: 08 - Book, Author, and Category Detail
 Status: NOT_STARTED
 
 Current branch: main
@@ -150,13 +150,13 @@ These models have NOT been implemented yet.
 
 ## Current Objective
 
-Phase 06 - Arabic RTL Base Interface is complete.
+Phase 07 - Home Page and Catalog Listing is complete.
 
 The next phase is:
 
-Phase 07 - Home and Catalog Listing
+Phase 08 - Book, Author, and Category Detail
 
-Phase 07 is waiting for explicit user approval before implementation begins.
+Phase 08 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -169,6 +169,7 @@ Basic authentication (registration, login, logout, profile) has been implemented
 The V1 catalog data models (Author, Category, Book) have been implemented and migrated.
 Django Admin has been configured for the catalog models.
 The Arabic RTL base interface, Bootstrap 5, shared navigation, and home page have been implemented.
+The home page and catalog listing page display real published catalog data without leaking PDF files.
 
 ## Tests and Verification
 
@@ -206,6 +207,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 07 - Home and Catalog Listing
+Phase 08 - Book, Author, and Category Detail
 
-Do not perform Phase 07 implementation before approval.
+Do not perform Phase 08 implementation before approval.

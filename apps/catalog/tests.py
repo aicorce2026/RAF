@@ -1,6 +1,9 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.db.models import ProtectedError
 from django.db import IntegrityError
+from django.contrib.admin.sites import site
+from django.urls import reverse, resolve
+from django.contrib.auth import get_user_model
 from .models import Author, Category, Book
 
 class CatalogModelTests(TestCase):
@@ -58,9 +61,6 @@ class CatalogModelTests(TestCase):
     def test_book_pdf_file(self):
         self.assertEqual(self.book.pdf_file.name, "books/pdfs/test-book.pdf")
 
-from django.contrib.admin.sites import site
-from django.urls import reverse
-from django.contrib.auth import get_user_model
 
 class CatalogAdminTests(TestCase):
     def setUp(self):
@@ -70,6 +70,7 @@ class CatalogAdminTests(TestCase):
             password="testpassword123",
             email="admin@example.com"
         )
+        self.client = Client()
         self.client.login(username="admin_test", password="testpassword123")
 
     def test_models_are_registered(self):
@@ -121,3 +122,55 @@ class CatalogAdminTests(TestCase):
         url = reverse('admin:catalog_book_changelist')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+
+class CatalogViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.book_list_url = reverse('catalog:book_list')
+        self.author = Author.objects.create(name="Test Author View")
+        self.category = Category.objects.create(name="Test Category View")
+
+    def test_book_list_url_resolves(self):
+        resolver = resolve('/books/')
+        self.assertEqual(resolver.view_name, 'catalog:book_list')
+
+    def test_anonymous_user_can_access_book_list(self):
+        self.client.logout()
+        response = self.client.get(self.book_list_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_book_list_resolves_and_returns_200(self):
+        response = self.client.get(self.book_list_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'catalog/book_list.html')
+
+    def test_book_list_displays_published_books(self):
+        book = Book.objects.create(title="Published View Book", author=self.author, category=self.category, is_published=True, publication_year=2024, pdf_file="books/pdfs/test.pdf")
+        response = self.client.get(self.book_list_url)
+        self.assertContains(response, "Published View Book")
+        self.assertContains(response, "Test Author View")
+        self.assertContains(response, "Test Category View")
+        self.assertContains(response, "2024")
+
+    def test_book_list_does_not_display_unpublished_books(self):
+        book = Book.objects.create(title="Unpublished View Book", author=self.author, category=self.category, is_published=False, pdf_file="books/pdfs/test.pdf")
+        response = self.client.get(self.book_list_url)
+        self.assertNotContains(response, "Unpublished View Book")
+
+    def test_book_without_publication_year_does_not_break(self):
+        book = Book.objects.create(title="No Year Book", author=self.author, category=self.category, is_published=True, pdf_file="books/pdfs/test.pdf")
+        response = self.client.get(self.book_list_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "No Year Book")
+        self.assertNotContains(response, "سنة النشر:")
+
+    def test_empty_catalog_message(self):
+        response = self.client.get(self.book_list_url)
+        self.assertContains(response, "لا توجد كتب متاحة حالياً.")
+
+    def test_no_pdf_url_rendered(self):
+        book = Book.objects.create(title="PDF Check Book", author=self.author, category=self.category, is_published=True, pdf_file="books/pdfs/secret.pdf")
+        response = self.client.get(self.book_list_url)
+        self.assertNotContains(response, "secret.pdf")
+        self.assertNotContains(response, book.pdf_file.url)
