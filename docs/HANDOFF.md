@@ -57,9 +57,21 @@ Current branch:
 
 main
 
-Last verified commit:
+Current HEAD:
+
+Do not hard-code the current HEAD in this document.
+
+Always determine the current HEAD using:
+
+git log --oneline -1
+
+Historical baseline commit:
 
 8f7e792 chore: initialize project repository
+
+Phase 00 governance completion commit:
+
+37ea6f3 docs: establish project governance and continuity
 
 ---
 
@@ -231,7 +243,7 @@ The new agent must report:
 - Current phase
 - Current phase status
 - Current branch
-- Last verified commit
+- Current HEAD commit reported by git log
 - Completed work
 - Remaining work
 - Known issues
