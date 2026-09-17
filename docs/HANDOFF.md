@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase 02 - Django Application Structure
+Phase: 03 - Authentication and User Accounts
 
 Current phase status:
 
@@ -114,7 +114,8 @@ The configuration package is named `config`.
 The development server starts successfully and the default page is reachable.
 The SQLite database `db.sqlite3` has been created and initial migrations applied.
 
-No Django applications (core, accounts, etc.) exist yet.
+The five Django applications (core, accounts, catalog, subscriptions, reading) have been created in the `apps` package.
+They are registered in `INSTALLED_APPS` and their URL namespaces are included in the root `urls.py`.
 No business models exist yet.
 
 ---
@@ -139,13 +140,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 01 is complete.
+Phase 02 is complete.
 
 The next implementation phase is:
 
-Phase 02 - Django Application Structure
+Phase 03 - Authentication and User Accounts
 
-Do not begin Phase 02 until the user explicitly approves continuing.
+Do not begin Phase 03 until the user explicitly approves continuing.
 
 ---
 
@@ -155,7 +156,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 02 - Django Application Structure
+Phase 03 - Authentication and User Accounts
 
 Do not implement any later phase.
 
