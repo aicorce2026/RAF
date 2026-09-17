@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile</title>
+</head>
+<body>
+    <h2>Profile</h2>
+    <p>Welcome, {{ user.username }}!</p>
+    {% if user.email %}
+    <p>Email: {{ user.email }}</p>
+    {% endif %}
+    {% if user.first_name %}
+    <p>First name: {{ user.first_name }}</p>
+    {% endif %}
+    {% if user.last_name %}
+    <p>Last name: {{ user.last_name }}</p>
+    {% endif %}
+
+    <form method="post" action="{% url 'accounts:logout' %}">
+        {% csrf_token %}
+        <button type="submit">Logout</button>
+    </form>
+</body>
+</html>

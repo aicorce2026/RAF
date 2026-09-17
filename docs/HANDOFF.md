@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 03 - Authentication and User Accounts
+Phase: 04 - Catalog Data Models
 
 Current phase status:
 
@@ -116,6 +116,8 @@ The SQLite database `db.sqlite3` has been created and initial migrations applied
 
 The five Django applications (core, accounts, catalog, subscriptions, reading) have been created in the `apps` package.
 They are registered in `INSTALLED_APPS` and their URL namespaces are included in the root `urls.py`.
+Basic authentication (registration, login, POST logout, protected profile) is implemented using Django's built-in User model.
+No custom User model or project migrations were created. Authentication tests passed.
 No business models exist yet.
 
 ---
@@ -140,13 +142,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 02 is complete.
+Phase 03 is complete.
 
 The next implementation phase is:
 
-Phase 03 - Authentication and User Accounts
+Phase 04 - Catalog Data Models
 
-Do not begin Phase 03 until the user explicitly approves continuing.
+Do not begin Phase 04 until the user explicitly approves continuing.
 
 ---
 
@@ -156,7 +158,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 03 - Authentication and User Accounts
+Phase 04 - Catalog Data Models
 
 Do not implement any later phase.
 
