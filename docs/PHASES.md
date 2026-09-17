@@ -61,7 +61,7 @@ Acceptance Criteria:
 
 ## Phase 01 - Django Project Bootstrap
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Create the base Django project.
