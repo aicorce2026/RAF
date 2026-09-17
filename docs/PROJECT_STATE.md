@@ -11,10 +11,10 @@ Local path: D:\rafia\RAF
 Phase: 02 - Django Application Structure
 Status: COMPLETE
 
-Phase: 08 - Book, Author, and Category Detail
+Phase: 09 - Book Search and Filtering
 Status: COMPLETE
 
-Phase: 09 - Book Search and Filtering
+Phase: 10 - Subscriptions and Requests
 Status: NOT_STARTED
 
 Current branch: main
@@ -150,13 +150,13 @@ These models have NOT been implemented yet.
 
 ## Current Objective
 
-Phase 08 - Book, Author, and Category Detail is complete.
+Phase 09 - Book Search and Filtering is complete.
 
 The next phase is:
 
-Phase 09 - Book Search and Filtering
+Phase 10 - Subscriptions and Requests
 
-Phase 09 is waiting for explicit user approval before implementation begins.
+Phase 10 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -171,6 +171,7 @@ Django Admin has been configured for the catalog models.
 The Arabic RTL base interface, Bootstrap 5, shared navigation, and home page have been implemented.
 The home page and catalog listing page display real published catalog data without leaking PDF files.
 Detail pages for books, authors, and categories are implemented with proper 404 responses for unpublished items.
+Book search and filtering (by text, author, and category) is fully functional via GET parameters in the catalog listing.
 
 ## Tests and Verification
 
@@ -208,6 +209,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 09 - Book Search and Filtering
+Phase 10 - Subscriptions and Requests
 
-Do not perform Phase 09 implementation before approval.
+Do not perform Phase 10 implementation before approval.

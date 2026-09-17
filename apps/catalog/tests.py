@@ -235,3 +235,131 @@ class CatalogDetailViewTests(TestCase):
         self.assertContains(response, reverse('catalog:book_detail', args=[self.pub_book.pk]))
         self.assertContains(response, reverse('catalog:author_detail', args=[self.author.pk]))
         self.assertContains(response, reverse('catalog:category_detail', args=[self.category.pk]))
+
+
+class CatalogSearchTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.book_list_url = reverse('catalog:book_list')
+
+        self.author1 = Author.objects.create(name="Author Alpha", biography="Bio A")
+        self.author2 = Author.objects.create(name="Author Beta", biography="Bio B")
+
+        self.cat1 = Category.objects.create(name="Cat Fiction", description="Fictional")
+        self.cat2 = Category.objects.create(name="Cat Science", description="Scientific")
+
+        # Book 1: Author1, Cat1
+        self.book1 = Book.objects.create(
+            title="The Alpha Fiction",
+            description="A great story about alphas",
+            author=self.author1,
+            category=self.cat1,
+            is_published=True,
+            pdf_file="books/pdfs/book1.pdf"
+        )
+        # Book 2: Author2, Cat2
+        self.book2 = Book.objects.create(
+            title="The Beta Science",
+            description="Scientific study of betas",
+            author=self.author2,
+            category=self.cat2,
+            is_published=True,
+            pdf_file="books/pdfs/book2.pdf"
+        )
+        # Book 3: Unpublished
+        self.book3_unpub = Book.objects.create(
+            title="Secret Alpha",
+            description="Unpublished alpha secrets",
+            author=self.author1,
+            category=self.cat1,
+            is_published=False,
+            pdf_file="books/pdfs/secret.pdf"
+        )
+
+    def test_search_by_partial_title(self):
+        response = self.client.get(self.book_list_url, {'q': 'Alpha'})
+        self.assertContains(response, "The Alpha Fiction")
+        self.assertNotContains(response, "The Beta Science")
+
+    def test_search_by_description(self):
+        response = self.client.get(self.book_list_url, {'q': 'study'})
+        self.assertContains(response, "The Beta Science")
+        self.assertNotContains(response, "The Alpha Fiction")
+
+    def test_search_by_author_name(self):
+        response = self.client.get(self.book_list_url, {'q': 'Beta'})
+        self.assertContains(response, "The Beta Science")
+        self.assertNotContains(response, "The Alpha Fiction")
+
+    def test_search_by_category_name(self):
+        response = self.client.get(self.book_list_url, {'q': 'Fiction'})
+        self.assertContains(response, "The Alpha Fiction")
+        self.assertNotContains(response, "The Beta Science")
+
+    def test_search_never_returns_unpublished(self):
+        response = self.client.get(self.book_list_url, {'q': 'Secret'})
+        self.assertNotContains(response, "Secret Alpha")
+        self.assertContains(response, "لا توجد كتب متاحة حالياً.")
+
+    def test_category_filter(self):
+        response = self.client.get(self.book_list_url, {'category': self.cat1.pk})
+        self.assertContains(response, "The Alpha Fiction")
+        self.assertNotContains(response, "The Beta Science")
+
+    def test_author_filter(self):
+        response = self.client.get(self.book_list_url, {'author': self.author2.pk})
+        self.assertContains(response, "The Beta Science")
+        self.assertNotContains(response, "The Alpha Fiction")
+
+    def test_combined_q_and_category(self):
+        # Matches book1, but cat2 filters it out
+        response = self.client.get(self.book_list_url, {'q': 'Alpha', 'category': self.cat2.pk})
+        self.assertNotContains(response, "The Alpha Fiction")
+
+    def test_combined_q_and_author(self):
+        response = self.client.get(self.book_list_url, {'q': 'Science', 'author': self.author2.pk})
+        self.assertContains(response, "The Beta Science")
+
+    def test_combined_all_filters(self):
+        response = self.client.get(self.book_list_url, {'q': 'Alpha', 'category': self.cat1.pk, 'author': self.author1.pk})
+        self.assertContains(response, "The Alpha Fiction")
+
+    def test_empty_search_returns_all_published(self):
+        response = self.client.get(self.book_list_url, {'q': '', 'category': '', 'author': ''})
+        self.assertContains(response, "The Alpha Fiction")
+        self.assertContains(response, "The Beta Science")
+        self.assertNotContains(response, "Secret Alpha")
+
+    def test_no_result_displays_empty_state(self):
+        response = self.client.get(self.book_list_url, {'q': 'NonExistentXYZ'})
+        self.assertContains(response, "لا توجد كتب متاحة حالياً.")
+
+    def test_search_form_preserves_state(self):
+        response = self.client.get(self.book_list_url, {'q': 'TestQuery', 'category': self.cat1.pk, 'author': self.author1.pk})
+        self.assertContains(response, 'value="TestQuery"')
+        self.assertContains(response, f'value="{self.cat1.pk}" selected')
+        self.assertContains(response, f'value="{self.author1.pk}" selected')
+
+    def test_invalid_category_parameter_does_not_crash(self):
+        response = self.client.get(self.book_list_url, {'category': 'invalid'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_invalid_author_parameter_does_not_crash(self):
+        response = self.client.get(self.book_list_url, {'author': 'invalid'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_anonymous_user_can_search(self):
+        self.client.logout()
+        response = self.client.get(self.book_list_url, {'q': 'Alpha'})
+        self.assertEqual(response.status_code, 200)
+
+    def test_no_pdf_url_exposed_in_search(self):
+        response = self.client.get(self.book_list_url, {'q': 'Alpha'})
+        self.assertNotContains(response, "book1.pdf")
+        self.assertNotContains(response, self.book1.pdf_file.url)
+
+    def test_existing_detail_links_present(self):
+        response = self.client.get(self.book_list_url, {'q': 'Alpha'})
+        self.assertContains(response, reverse('catalog:book_detail', args=[self.book1.pk]))
+        self.assertContains(response, reverse('catalog:author_detail', args=[self.author1.pk]))
+        self.assertContains(response, reverse('catalog:category_detail', args=[self.cat1.pk]))

@@ -297,7 +297,7 @@ Acceptance Criteria:
 
 ## Phase 09 - Search and Filtering
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Allow users to find books easily.

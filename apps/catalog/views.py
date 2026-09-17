@@ -1,9 +1,43 @@
 from django.shortcuts import render, get_object_or_404
+from django.db.models import Q
 from apps.catalog.models import Book, Author, Category
 
 def book_list(request):
-    books = Book.objects.filter(is_published=True).select_related('author', 'category').order_by('-created_at')
-    return render(request, 'catalog/book_list.html', {'books': books})
+    queryset = Book.objects.filter(is_published=True).select_related('author', 'category').order_by('-created_at')
+
+    query = request.GET.get('q', '').strip()
+    category_id = request.GET.get('category', '')
+    author_id = request.GET.get('author', '')
+
+    if query:
+        queryset = queryset.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(author__name__icontains=query) |
+            Q(category__name__icontains=query)
+        )
+
+    if category_id:
+        try:
+            queryset = queryset.filter(category_id=int(category_id))
+        except (ValueError, TypeError):
+            pass
+
+    if author_id:
+        try:
+            queryset = queryset.filter(author_id=int(author_id))
+        except (ValueError, TypeError):
+            pass
+
+    context = {
+        'books': queryset,
+        'categories': Category.objects.all(),
+        'authors': Author.objects.all(),
+        'q': query,
+        'selected_category': category_id,
+        'selected_author': author_id,
+    }
+    return render(request, 'catalog/book_list.html', context)
 
 def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk, is_published=True)

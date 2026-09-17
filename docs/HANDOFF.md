@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 09 - Book Search and Filtering
+Phase: 10 - Subscriptions and Requests
 
 Current phase status:
 
@@ -124,6 +124,7 @@ Django Admin is configured with AuthorAdmin, CategoryAdmin, and BookAdmin, provi
 The project uses an Arabic RTL base interface powered by Bootstrap 5 RTL, with shared navigation and a minimal home page. All authentication templates extend this base.
 The home page and /books/ listing view now use real database catalog queries (filtering only for published books and using select_related). No PDF links are exposed.
 Book, Author, and Category detail pages are implemented and public, enforcing is_published=True visibility.
+A robust, case-insensitive book search and filtering system is available on the book listing page using Django Q objects.
 
 ---
 
@@ -147,13 +148,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 08 is complete.
+Phase 09 is complete.
 
 The next implementation phase is:
 
-Phase 09 - Book Search and Filtering
+Phase 10 - Subscriptions and Requests
 
-Do not begin Phase 09 until the user explicitly approves continuing.
+Do not begin Phase 10 until the user explicitly approves continuing.
 
 ---
 
@@ -163,7 +164,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 09 - Book Search and Filtering
+Phase 10 - Subscriptions and Requests
 
 Do not implement any later phase.
 
