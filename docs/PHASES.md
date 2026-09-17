@@ -365,7 +365,7 @@ Acceptance Criteria:
 
 ## Phase 11 - Manual Subscription Workflow
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Allow users to request subscription activation manually.

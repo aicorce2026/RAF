@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 11 - Manual Subscription Workflow
+Phase: 12 - Protected PDF Reader
 
 Current phase status:
 
@@ -126,6 +126,7 @@ The home page and /books/ listing view now use real database catalog queries (fi
 Book, Author, and Category detail pages are implemented and public, enforcing is_published=True visibility.
 A robust, case-insensitive book search and filtering system is available on the book listing page using Django Q objects.
 SubscriptionRequest and Subscription data models are fully implemented in apps/subscriptions with migration 0001_initial applied.
+Manual subscription workflow: users submit requests via /subscriptions/request/, view status at /subscriptions/. Admins approve/reject via Django Admin actions. Approval creates exactly one 30-day Subscription.
 
 ---
 
@@ -149,13 +150,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 10 is complete.
+Phase 11 is complete.
 
 The next implementation phase is:
 
-Phase 11 - Manual Subscription Workflow
+Phase 12 - Protected PDF Reader
 
-Do not begin Phase 11 until the user explicitly approves continuing.
+Do not begin Phase 12 until the user explicitly approves continuing.
 
 ---
 
@@ -165,7 +166,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 11 - Manual Subscription Workflow
+Phase 12 - Protected PDF Reader
 
 Do not implement any later phase.
 

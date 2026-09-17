@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}المكتبة الرقمية - طلبات الاشتراك{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="mb-0">طلبات الاشتراك الخاصة بي</h2>
+            <a href="{% url 'subscriptions:request_create' %}" class="btn btn-primary">طلب اشتراك جديد</a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>طريقة الدفع</th>
+                            <th>الحالة</th>
+                            <th>تاريخ الطلب</th>
+                            <th>تاريخ المراجعة</th>
+                            <th>ملاحظة الإدارة</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td>{{ req.payment_method }}</td>
+                            <td>
+                                {% if req.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">قيد الانتظار</span>
+                                {% elif req.status == 'APPROVED' %}
+                                    <span class="badge bg-success">مقبول</span>
+                                {% elif req.status == 'REJECTED' %}
+                                    <span class="badge bg-danger">مرفوض</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.created_at|date:"Y-m-d" }}</td>
+                            <td>{% if req.reviewed_at %}{{ req.reviewed_at|date:"Y-m-d" }}{% else %}-{% endif %}</td>
+                            <td>{% if req.admin_note %}{{ req.admin_note }}{% else %}-{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                لا توجد طلبات اشتراك حتى الآن.
+                <a href="{% url 'subscriptions:request_create' %}" class="alert-link">قدّم طلبك الآن</a>.
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
