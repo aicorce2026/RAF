@@ -181,7 +181,7 @@ Acceptance Criteria:
 
 ## Phase 05 - Django Admin
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Use Django Admin as the V1 management interface.

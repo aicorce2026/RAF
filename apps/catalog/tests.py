@@ -57,3 +57,67 @@ class CatalogModelTests(TestCase):
 
     def test_book_pdf_file(self):
         self.assertEqual(self.book.pdf_file.name, "books/pdfs/test-book.pdf")
+
+from django.contrib.admin.sites import site
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+
+class CatalogAdminTests(TestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.admin_user = User.objects.create_superuser(
+            username="admin_test",
+            password="testpassword123",
+            email="admin@example.com"
+        )
+        self.client.login(username="admin_test", password="testpassword123")
+
+    def test_models_are_registered(self):
+        self.assertTrue(site.is_registered(Author))
+        self.assertTrue(site.is_registered(Category))
+        self.assertTrue(site.is_registered(Book))
+
+    def test_admin_classes(self):
+        from .admin import AuthorAdmin, CategoryAdmin, BookAdmin
+        self.assertIsInstance(site._registry[Author], AuthorAdmin)
+        self.assertIsInstance(site._registry[Category], CategoryAdmin)
+        self.assertIsInstance(site._registry[Book], BookAdmin)
+
+    def test_book_admin_configuration(self):
+        from .admin import BookAdmin
+        admin_instance = site._registry[Book]
+
+        self.assertIn("title", admin_instance.list_display)
+        self.assertIn("author", admin_instance.list_display)
+        self.assertIn("category", admin_instance.list_display)
+        self.assertIn("publication_year", admin_instance.list_display)
+        self.assertIn("is_published", admin_instance.list_display)
+
+        self.assertIn("is_published", admin_instance.list_filter)
+        self.assertIn("category", admin_instance.list_filter)
+        self.assertIn("author", admin_instance.list_filter)
+
+        self.assertIn("title", admin_instance.search_fields)
+        self.assertIn("author__name", admin_instance.search_fields)
+        self.assertIn("category__name", admin_instance.search_fields)
+
+    def test_admin_login_page_reachable(self):
+        self.client.logout()
+        url = reverse('admin:login')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_author_admin_changelist_view(self):
+        url = reverse('admin:catalog_author_changelist')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_category_admin_changelist_view(self):
+        url = reverse('admin:catalog_category_changelist')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_book_admin_changelist_view(self):
+        url = reverse('admin:catalog_book_changelist')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
