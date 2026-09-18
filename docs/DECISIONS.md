@@ -360,3 +360,25 @@ The following features are intentionally deferred beyond V1:
 - advanced DRM
 
 These features must not be introduced during V1 without explicit approval.
+
+---
+
+## ADR-017 - Generic Production Runtime Preparation
+
+Status: ACCEPTED
+
+Decision:
+
+- Use Gunicorn as the production WSGI server on a Linux-compatible host.
+- Use WhiteNoise with compressed manifest storage for collected static assets.
+- Keep uploaded media outside WhiteNoise and behind existing Django authorization.
+- Keep SQLite for V1 and allow its file path to be supplied by environment.
+- Keep HSTS disabled until Phase 20 verifies the final HTTPS hostname.
+- Do not add provider-specific files or deploy during Phase 19.
+
+Reason:
+
+This provides a minimal, provider-neutral production path while preserving local
+development behavior and the existing protected-media design. Persistent SQLite
+and uploaded-media storage depend on the Phase 20 hosting provider and cannot be
+resolved safely before that provider is selected.

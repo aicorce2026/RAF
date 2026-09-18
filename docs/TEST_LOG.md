@@ -1627,3 +1627,111 @@ PASSED
 - Raw PDF access remains blocked; receipts remain staff-only; traversal/nested receipt paths remain rejected.
 - No user-facing template exposes a protected PDF or receipt storage URL.
 - Phase 19 remains NOT_STARTED.
+
+---
+
+## Phase 19 - Production and Deployment Preparation
+
+Date:
+2026-09-18
+
+Status:
+COMPLETE
+
+### Dependencies and Production Runtime
+
+- Kept `Django==5.2.17` unchanged.
+- Added and installed `gunicorn==26.2.0` for the eventual Linux WSGI host.
+- Added and installed `whitenoise==6.12.0` for collected static assets.
+- `config.wsgi.application` imported successfully.
+- Gunicorn cannot execute on the Windows development workstation because it requires Unix `fcntl`; this is expected and the production command targets a Linux-compatible host.
+- No provider-specific deployment file was added and no deployment was performed.
+
+### Production Configuration
+
+- Added `STATIC_ROOT` and WhiteNoise compressed manifest static storage.
+- WhiteNoise middleware is immediately after Django SecurityMiddleware.
+- Added environment-driven `CSRF_TRUSTED_ORIGINS` and `DATABASE_PATH`.
+- Added reverse-proxy HTTPS recognition through `SECURE_PROXY_SSL_HEADER`.
+- `SECURE_SSL_REDIRECT` defaults to enabled when `DEBUG=False` and remains environment-controllable.
+- Secure session and CSRF cookies are enabled when `DEBUG=False`.
+- `SECURE_HSTS_SECONDS` is environment-driven and defaults to `0` until Phase 20 verifies the final HTTPS hostname.
+- Generic Arabic `404.html` and `500.html` templates were added and verified under `DEBUG=False`.
+
+### Requirements Installation
+
+Command:
+`.venv\Scripts\python.exe -m pip install -r requirements.txt`
+
+Result:
+Gunicorn 26.2.0 and WhiteNoise 6.12.0 installed successfully; Django 5.2.17 remained satisfied.
+
+Status:
+PASSED
+
+### Static Files
+
+Command:
+`.venv\Scripts\python.exe manage.py collectstatic --noinput`
+
+Result:
+128 static files copied to `staticfiles/`; 384 files post-processed. The WhiteNoise manifest was created, production static serving returned HTTP 200, and all collected output remained ignored by Git.
+
+Status:
+PASSED
+
+### Environment and Deployment Checks
+
+- Comma-separated `ALLOWED_HOSTS` produced two hosts as expected.
+- Comma-separated `CSRF_TRUSTED_ORIGINS` produced two HTTPS origins as expected.
+- `DEBUG=False` required and accepted an external verification-only SECRET_KEY.
+- Secure cookies and SSL redirect were enabled under `DEBUG=False`.
+
+Normal check result:
+System check identified no issues (0 silenced).
+
+Deployment check result:
+`manage.py check --deploy` reported one warning: `security.W004` because HSTS remains disabled. This is intentionally deferred until Phase 20 selects and verifies the final HTTPS hostname; enabling HSTS prematurely can make a domain inaccessible. No critical or unexplained deployment issue was reported.
+
+### Migration Verification
+
+- `manage.py makemigrations --check --dry-run`: No changes detected.
+- `manage.py migrate --plan`: No planned migration operations.
+- Every migration applied successfully from zero to a fresh temporary SQLite database outside the repository.
+- The existing development `db.sqlite3` was not modified or deleted.
+- No Phase 19 migration was created.
+
+### Final Application Test Suites
+
+- Accounts: Ran 19 tests in 17.983s... OK
+- Catalog: Ran 57 tests in 19.054s... OK
+- Subscriptions: Ran 92 tests in 134.206s... OK
+- Reading: Ran 129 tests in 192.752s... OK
+- Core: Ran 14 tests in 7.035s... OK
+
+Status:
+PASSED
+
+### Final Full Test Suite
+
+Command:
+`.venv\Scripts\python.exe manage.py test`
+
+Result:
+Ran 311 tests in 367.698s... OK
+
+Status:
+PASSED
+
+### Protected Media and Repository Outcome
+
+- WhiteNoise serves static files only and does not serve `MEDIA_ROOT`.
+- Direct `/media/books/pdfs/` access remains blocked.
+- Book PDF access still requires the protected reader/file endpoints and an active subscription.
+- Receipts remain staff-only and traversal-resistant.
+- No user-facing template exposes protected storage URLs.
+- `.env`, `db.sqlite3`, `media/`, `staticfiles/`, and `.venv/` remain ignored.
+- `.env.example` remains tracked and contains placeholders only.
+- Tracked-secret review found only the documented development fallback, placeholders, and test credentials; no real secret, private key, database, upload, or collected-static artifact is tracked.
+- `git diff --check` passed; only informational LF-to-CRLF warnings were emitted.
+- Phase 20 remains NOT_STARTED.

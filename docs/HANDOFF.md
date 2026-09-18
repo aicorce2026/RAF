@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 18 - Full Test Suite and Regression Pass
+Phase: 19 - Production and Deployment Preparation
 
 Current phase status:
 
@@ -55,7 +55,7 @@ COMPLETE
 
 Next phase:
 
-Phase: 19 - Production and Deployment Preparation
+Phase: 20 - Free Demo Deployment and V1 Acceptance
 
 Next phase status:
 
@@ -141,6 +141,7 @@ Reading progress (Phase 15) is fully implemented: ReadingProgress model in apps/
 My Library dashboard (Phase 16) is fully implemented at /reading/library/. It requires login but not an active subscription to view. Continue Reading shows the current user's published-book ReadingProgress and links to the protected reader. Favorites shows the current user's published-book Favorite records and links to catalog details. Subscription status reuses get_active_subscription(). Unpublished books and other users' data are excluded server-side. No new model or migration was created.
 Validation and security hardening (Phase 17) is complete. Receipt uploads are restricted to PDF/JPG/JPEG/PNG files up to 5 MiB; Book uploads are restricted to PDF files up to 50 MiB. Empty files and extension/signature mismatches are rejected through model validation. Redirect validation uses Django's safe utility, receipts remain staff-only with traversal protection, broad admin exception swallowing was removed, and DEBUG=False configuration was verified with an external SECRET_KEY. No migration was created. The full suite passes 302 tests in 335.631s.
 Full regression testing (Phase 18) is complete. The clean Phase 17 baseline passed 302 tests in 334.027s. The audit found and fixed one defect: the dedicated Favorites page did not exclude unpublished books. Nine focused tests now cover that regression, upload cursor preservation, valid JPEG/PNG receipt behavior and MIME types, unsupported registration/request methods, ordinary-user admin denial, and reader resume clamping. Final verification passed 311 tests in 351.697s. No migration was created, and both default and DEBUG=False system checks pass.
+Production preparation (Phase 19) is complete. Gunicorn 26.2.0 and WhiteNoise 6.12.0 are pinned. Static files collect into ignored `staticfiles/` and are served with compressed manifest storage; protected PDFs and receipts remain outside WhiteNoise. Environment-driven trusted origins, SQLite path, SSL redirect, secure cookies, proxy HTTPS detection, and opt-in HSTS are configured. Generic Arabic 404/500 templates and `docs/DEPLOYMENT.md` were added. Fresh-database migrations, production checks, collectstatic, and all 311 tests passed. The only deployment warning is HSTS, intentionally deferred until Phase 20 verifies the final HTTPS hostname. No deployment or provider-specific file was created.
 
 ---
 
@@ -164,13 +165,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 18 is complete.
+Phase 19 is complete.
 
 The next implementation phase is:
 
-Phase 19 - Production and Deployment Preparation
+Phase 20 - Free Demo Deployment and V1 Acceptance
 
-Do not begin Phase 19 until the user explicitly approves continuing.
+Do not begin Phase 20 until the user explicitly approves continuing.
 
 ---
 
@@ -180,7 +181,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 19 - Production and Deployment Preparation
+Phase 20 - Free Demo Deployment and V1 Acceptance
 
 Do not implement any later phase.
 

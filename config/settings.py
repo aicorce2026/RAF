@@ -19,17 +19,47 @@ from django.core.exceptions import ImproperlyConfigured
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def _environment_flag(name, default):
+    """Return a boolean environment setting while preserving a safe default."""
+    value = os.environ.get(name)
+    if value is None:
+        return default
+
+    normalized_value = value.strip().lower()
+    if normalized_value in {"1", "true", "yes", "on"}:
+        return True
+    if normalized_value in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _environment_list(name, default=""):
+    """Return a comma-separated environment setting as a clean list."""
+    return [
+        item.strip()
+        for item in os.environ.get(name, default).split(",")
+        if item.strip()
+    ]
+
+
+def _environment_non_negative_int(name, default=0):
+    """Return a non-negative integer environment setting."""
+    raw_value = os.environ.get(name, str(default)).strip()
+    try:
+        value = int(raw_value)
+    except ValueError as exc:
+        raise ImproperlyConfigured(f"{name} must be a non-negative integer.") from exc
+    if value < 0:
+        raise ImproperlyConfigured(f"{name} must be a non-negative integer.")
+    return value
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# Ignore unrelated/invalid DEBUG environment values and preserve the local
-# development default; recognized false values still support DEBUG=False.
-_debug_value = os.environ.get("DEBUG", "True").strip().lower()
-if _debug_value in {"0", "false", "no", "off"}:
-    DEBUG = False
-else:
-    DEBUG = True
+# Invalid values preserve the local development default.
+DEBUG = _environment_flag("DEBUG", True)
 
 # Local development may use this explicitly non-production fallback. A deployment
 # with DEBUG disabled must provide its own secret through the environment.
@@ -39,14 +69,22 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("SECRET_KEY must be set when DEBUG is False.")
     SECRET_KEY = "django-insecure-development-only-key"
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.environ.get(
-        "ALLOWED_HOSTS",
-        "localhost,127.0.0.1,[::1]",
-    ).split(",")
-    if host.strip()
-]
+ALLOWED_HOSTS = _environment_list(
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1,[::1]",
+)
+CSRF_TRUSTED_ORIGINS = _environment_list("CSRF_TRUSTED_ORIGINS")
+
+# Common hosted platforms terminate HTTPS at a reverse proxy. Django uses the
+# forwarded protocol to avoid redirect loops while keeping local HTTP working.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_SSL_REDIRECT = _environment_flag("SECURE_SSL_REDIRECT", not DEBUG)
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+
+# HSTS is intentionally opt-in until Phase 20 selects and verifies the final
+# HTTPS hostname. Enabling it incorrectly can make a domain inaccessible.
+SECURE_HSTS_SECONDS = _environment_non_negative_int("SECURE_HSTS_SECONDS")
 
 
 # Application definition
@@ -69,6 +107,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -103,7 +142,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': Path(os.environ.get("DATABASE_PATH", BASE_DIR / "db.sqlite3")),
     }
 }
 
@@ -143,7 +182,17 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
+    'staticfiles': {
+        'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

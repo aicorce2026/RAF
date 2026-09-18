@@ -30,6 +30,9 @@ Phase: 18 - Full Test Suite and Regression Pass
 Status: COMPLETE
 
 Phase: 19 - Production and Deployment Preparation
+Status: COMPLETE
+
+Phase: 20 - Free Demo Deployment and V1 Acceptance
 Status: NOT_STARTED
 
 Current branch: main
@@ -165,13 +168,13 @@ These models have been implemented.
 
 ## Current Objective
 
-Phase 18 - Full Test Suite and Regression Pass is complete.
+Phase 19 - Production and Deployment Preparation is complete.
 
 The next phase is:
 
-Phase 19 - Production and Deployment Preparation
+Phase 20 - Free Demo Deployment and V1 Acceptance
 
-Phase 19 is waiting for explicit user approval before implementation begins.
+Phase 20 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -194,6 +197,7 @@ Reading progress (Phase 15) implemented in apps/reading: ReadingProgress model (
 My Library dashboard (Phase 16) implemented at /reading/library/: login required, but no active subscription required to view. It displays only the authenticated user's published-book reading progress and favorites using select_related queries, plus existing subscription status. Continue Reading links use the protected reading:reader route, so PDF access remains subscription-protected.
 Validation and security hardening (Phase 17) is complete. Receipt uploads accept only PDF/JPG/JPEG/PNG files up to 5 MiB, and Book uploads accept only PDF files up to 50 MiB; both reject empty files and verify lightweight file signatures. Safe redirects use Django's host-aware utility. Receipt paths reject traversal/nested values, state-changing endpoints retain CSRF and method protections, and environment-driven DEBUG/ALLOWED_HOSTS configuration supports DEBUG=False when an external SECRET_KEY is supplied.
 Full regression testing (Phase 18) is complete. One defect was found and fixed: unpublished books are now excluded from the dedicated Favorites page. Nine focused regression tests were added for that visibility rule, HTTP method restrictions, admin authorization, receipt formats and response types, upload cursor preservation, and reader resume clamping. No migration was created.
+Production preparation (Phase 19) is complete. Gunicorn and WhiteNoise are pinned, static files collect into ignored `staticfiles/`, production environment parsing and secure proxy behavior are configured, generic Arabic 404/500 pages exist, SQLite can use an environment-provided persistent path, and deployment steps are documented in `docs/DEPLOYMENT.md`. Protected media is not served by WhiteNoise. No migration was created and no deployment was performed.
 
 ## Tests and Verification
 
@@ -210,10 +214,12 @@ Environment verification completed:
 
 Application tests:
 - Django system check (python manage.py check) passed.
-- Phase 18 final full suite passed: 311 tests in 351.697s.
-- Final standalone suites passed: accounts 19 in 17.451s; catalog 57 in 9.559s; subscriptions 92 in 127.662s; reading 129 in 189.442s; core 14 in 6.667s.
-- Default and DEBUG=False Django system checks passed with no issues.
-- Migration consistency check reported no changes detected.
+- Phase 19 final full suite passed: 311 tests in 367.698s.
+- Final standalone suites passed: accounts 19 in 17.983s; catalog 57 in 19.054s; subscriptions 92 in 134.206s; reading 129 in 192.752s; core 14 in 7.035s.
+- Default Django system check passed with no issues.
+- `check --deploy` reported only the intentionally deferred HSTS warning.
+- Migration consistency check reported no changes detected; all migrations also applied successfully to a fresh temporary SQLite database.
+- `collectstatic --noinput` copied 128 files and post-processed 384 files successfully.
 - Development server (python manage.py runserver) starts successfully.
 - Default Django install page is reachable.
 
@@ -235,6 +241,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 19 - Production and Deployment Preparation
+Phase 20 - Free Demo Deployment and V1 Acceptance
 
-Do not perform Phase 19 implementation before approval.
+Do not perform Phase 20 implementation before approval.
