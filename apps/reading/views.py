@@ -53,12 +53,12 @@ def favorite_toggle(request, book_pk):
     """
     book = get_object_or_404(Book, pk=book_pk, is_published=True)
     favorite = Favorite.objects.filter(user=request.user, book=book).first()
-    
+
     if favorite:
         favorite.delete()
     else:
         Favorite.objects.create(user=request.user, book=book)
-        
+
     next_url = request.POST.get('next')
     # Extremely basic safe redirect to local paths only
     if next_url and next_url.startswith('/') and not next_url.startswith('//'):
@@ -73,4 +73,3 @@ def favorite_list(request):
     """
     favorites = Favorite.objects.filter(user=request.user).select_related('book', 'book__author', 'book__category')
     return render(request, 'reading/favorite_list.html', {'favorites': favorites})
-

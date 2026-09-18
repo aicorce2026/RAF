@@ -351,7 +351,7 @@ class PublicCatalogRegressionTests(TestCase):
 # ---------------------------------------------------------------------------
 
 class FavoriteModelTests(TestCase):
-    
+
     def setUp(self):
         self.user1 = make_user('user1')
         self.user2 = make_user('user2')
@@ -399,7 +399,7 @@ class FavoriteModelTests(TestCase):
 # ---------------------------------------------------------------------------
 
 class FavoriteToggleTests(TestCase):
-    
+
     def setUp(self):
         self.client = Client()
         self.user = make_user('toggle_user')
@@ -448,7 +448,7 @@ class FavoriteToggleTests(TestCase):
         self.client.login(username='toggle_user', password='testpass123')
         response = self.client.post(self.toggle_url, {'next': '/some/local/path/'})
         self.assertRedirects(response, '/some/local/path/', fetch_redirect_response=False)
-        
+
     def test_unsafe_redirect_falls_back(self):
         self.client.login(username='toggle_user', password='testpass123')
         response = self.client.post(self.toggle_url, {'next': 'http://evil.com'})
@@ -472,7 +472,7 @@ class FavoriteToggleTests(TestCase):
 # ---------------------------------------------------------------------------
 
 class FavoriteListTests(TestCase):
-    
+
     def setUp(self):
         self.client = Client()
         self.user1 = make_user('user1')
@@ -480,7 +480,7 @@ class FavoriteListTests(TestCase):
         self.book1 = make_book('Book 1')
         self.book2 = make_book('Book 2')
         self.list_url = reverse('reading:favorite_list')
-        
+
     def test_anonymous_redirected_to_login(self):
         response = self.client.get(self.list_url)
         self.assertEqual(response.status_code, 302)
@@ -494,7 +494,7 @@ class FavoriteListTests(TestCase):
     def test_list_shows_only_own_favorites(self):
         Favorite.objects.create(user=self.user1, book=self.book1)
         Favorite.objects.create(user=self.user2, book=self.book2)
-        
+
         self.client.login(username='user1', password='testpass123')
         response = self.client.get(self.list_url)
         self.assertContains(response, 'Book 1')
@@ -504,7 +504,7 @@ class FavoriteListTests(TestCase):
         self.client.login(username='user1', password='testpass123')
         response = self.client.get(self.list_url)
         self.assertContains(response, 'لا توجد كتب في المفضلة حالياً')
-        
+
     def test_book_detail_shows_add_favorite_for_unfavorited(self):
         self.client.login(username='user1', password='testpass123')
         response = self.client.get(reverse('catalog:book_detail', args=[self.book1.pk]))

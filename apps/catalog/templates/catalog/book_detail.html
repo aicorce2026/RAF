@@ -27,7 +27,7 @@
                             قراءة الكتاب
                         </a>
                     {% endif %}
-                    
+
                     {% if user.is_authenticated %}
                         <form method="POST" action="{% url 'reading:favorite_toggle' book.pk %}" class="d-inline">
                             {% csrf_token %}
@@ -39,7 +39,7 @@
                     {% else %}
                         <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="btn btn-outline-danger">تسجيل الدخول لإضافة للمفضلة</a>
                     {% endif %}
-                    
+
                     <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary">العودة إلى الكتب</a>
                 </div>
             </div>

@@ -1207,4 +1207,3 @@ PASSED
 - Only published books can be favorited: CONFIRMED (404 on unpublished)
 - No direct PDF URLs exposed in favorites list: CONFIRMED
 - Users can only see their own favorites: CONFIRMED
-
