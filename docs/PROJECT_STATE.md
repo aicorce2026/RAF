@@ -15,6 +15,9 @@ Phase: 13 - PDF Reader MVP
 Status: COMPLETE
 
 Phase: 14 - Favorites
+Status: COMPLETE
+
+Phase: 15 - Reading Progress Tracking
 Status: NOT_STARTED
 
 Current branch: main
@@ -150,13 +153,13 @@ These models have NOT been implemented yet.
 
 ## Current Objective
 
-Phase 13 - PDF Reader MVP is complete.
+Phase 14 - Favorites is complete.
 
 The next phase is:
 
-Phase 14 - Favorites
+Phase 15 - Reading Progress Tracking
 
-Phase 14 is waiting for explicit user approval before implementation begins.
+Phase 15 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -176,6 +179,7 @@ SubscriptionRequest and Subscription models created in apps/subscriptions with m
 Manual subscription workflow implemented: users can submit requests, admins can approve (creates 30-day subscription) or reject via Django Admin actions.
 Subscription access control implemented: has_active_subscription() service in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
 Protected PDF reader implemented in apps/reading: reader page at /read/<pk>/, streaming endpoint at /read/<pk>/file/. Direct /media/books/pdfs/ access blocked via url interceptor. PDF.js loaded via CDN.
+Favorites functionality implemented in apps/reading: users can add/remove books to their favorites and view their list. Favorite state rendered server-side in book detail views.
 
 ## Tests and Verification
 
@@ -213,6 +217,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 14 - Favorites
+Phase 15 - Reading Progress Tracking
 
-Do not perform Phase 14 implementation before approval.
+Do not perform Phase 15 implementation before approval.

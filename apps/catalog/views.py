@@ -41,7 +41,12 @@ def book_list(request):
 
 def book_detail(request, pk):
     book = get_object_or_404(Book, pk=pk, is_published=True)
-    return render(request, 'catalog/book_detail.html', {'book': book})
+    is_favorited = False
+    if request.user.is_authenticated:
+        # Import inside the view to avoid potential circular imports
+        from apps.reading.models import Favorite
+        is_favorited = Favorite.objects.filter(user=request.user, book=book).exists()
+    return render(request, 'catalog/book_detail.html', {'book': book, 'is_favorited': is_favorited})
 
 def author_detail(request, pk):
     author = get_object_or_404(Author, pk=pk)

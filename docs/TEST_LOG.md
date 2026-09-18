@@ -1176,3 +1176,35 @@ PASSED
 - Reader uses protected /read/<pk>/file/ endpoint only: CONFIRMED
 - PDF streaming secured server-side: CONFIRMED
 - No reading progress implemented: CONFIRMED
+
+---
+
+## Phase 14 - Favorites
+
+### Full Test Suite
+
+Command:
+python manage.py test -v 2
+
+Result:
+Reading: Ran 52 tests... OK
+Subscriptions: Ran 74 tests... OK
+Catalog: Ran 50 tests... OK
+Core: Ran 14 tests... OK
+Accounts: Ran 10 tests... OK
+Full Suite: Ran 200 tests in 159.076s... OK
+
+Status:
+PASSED
+
+---
+
+### Security Verification
+
+- Favorite toggle requires POST: CONFIRMED (405 Method Not Allowed on GET)
+- Favorite toggle requires authentication: CONFIRMED (302 to login)
+- CSRF token present in favorite forms: CONFIRMED
+- Only published books can be favorited: CONFIRMED (404 on unpublished)
+- No direct PDF URLs exposed in favorites list: CONFIRMED
+- Users can only see their own favorites: CONFIRMED
+

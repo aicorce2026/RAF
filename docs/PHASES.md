@@ -474,7 +474,7 @@ Acceptance Criteria:
 
 ## Phase 14 - Favorites
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Allow users to save books to their personal library.

@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 14 - Favorites
+Phase: 15 - Reading Progress Tracking
 
 Current phase status:
 
@@ -128,7 +128,7 @@ A robust, case-insensitive book search and filtering system is available on the 
 SubscriptionRequest and Subscription data models are fully implemented in apps/subscriptions with migration 0001_initial applied.
 Manual subscription workflow: users submit requests via /subscriptions/request/, view status at /subscriptions/. Admins approve/reject via Django Admin actions. Approval creates exactly one 30-day Subscription.
 Subscription access control: has_active_subscription() in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
-Protected PDF reader in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. No reading progress in this phase.
+Protected PDF reader in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
 
 ---
 
@@ -152,13 +152,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 13 is complete.
+Phase 14 is complete.
 
 The next implementation phase is:
 
-Phase 14 - Favorites
+Phase 15 - Reading Progress Tracking
 
-Do not begin Phase 14 until the user explicitly approves continuing.
+Do not begin Phase 15 until the user explicitly approves continuing.
 
 ---
 
@@ -168,7 +168,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 14 - Favorites
+Phase 15 - Reading Progress Tracking
 
 Do not implement any later phase.
 

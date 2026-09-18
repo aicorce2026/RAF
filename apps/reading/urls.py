@@ -6,4 +6,6 @@ app_name = "reading"
 urlpatterns = [
     path('<int:pk>/', views.reader, name='reader'),
     path('<int:pk>/file/', views.pdf_file, name='pdf_file'),
+    path('favorites/', views.favorite_list, name='favorite_list'),
+    path('favorites/<int:book_pk>/toggle/', views.favorite_toggle, name='favorite_toggle'),
 ]
