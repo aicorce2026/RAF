@@ -33,6 +33,15 @@ class CoreInterfaceTests(TestCase):
         self.assertContains(response, 'الرئيسية')
         self.assertContains(response, 'الكتب')
 
+    def test_shared_footer_contains_developer_credit(self):
+        response = self.client.get(self.home_url)
+        self.assertContains(response, '© 2026 RAF — جميع الحقوق محفوظة')
+        self.assertContains(response, 'تصميم وتطوير: وهيب الكبودي')
+        self.assertContains(response, 'https://wa.me/967775566952')
+        self.assertContains(response, 'dir="ltr"')
+        self.assertContains(response, 'target="_blank"')
+        self.assertContains(response, 'rel="noopener noreferrer"')
+
     def test_anonymous_navigation(self):
         response = self.client.get(self.home_url)
         self.assertContains(response, reverse('accounts:login'))
