@@ -1161,7 +1161,7 @@ Subscriptions: Ran 74 tests... OK
 Catalog: Ran 50 tests... OK
 Core: Ran 14 tests... OK
 Accounts: Ran 10 tests... OK
-Full Suite: Ran 174 tests in 118.205s... OK
+Full Suite: Ran 174 tests in 138.626s... OK
 
 Status:
 PASSED

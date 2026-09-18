@@ -44,12 +44,12 @@ def protected_receipt_file(request, path):
     sub_request = SubscriptionRequest.objects.filter(receipt_file='subscriptions/receipts/' + path).first()
     if not sub_request or not sub_request.receipt_file:
         raise Http404("إيصال الدفع غير موجود.")
-    
+
     try:
         file = sub_request.receipt_file.open('rb')
     except (FileNotFoundError, OSError):
         raise Http404("ملف الإيصال غير موجود على الخادم.")
-    
+
     response = FileResponse(file, content_type='application/pdf')
     # Using attachment rather than inline for safety against uploaded content
     response['Content-Disposition'] = f'attachment; filename="receipt-{sub_request.pk}.pdf"'
