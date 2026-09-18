@@ -131,7 +131,10 @@ def favorite_list(request):
     """
     List the logged-in user's favorites.
     """
-    favorites = Favorite.objects.filter(user=request.user).select_related('book', 'book__author', 'book__category')
+    favorites = Favorite.objects.filter(
+        user=request.user,
+        book__is_published=True,
+    ).select_related('book', 'book__author', 'book__category')
     return render(request, 'reading/favorite_list.html', {'favorites': favorites})
 
 

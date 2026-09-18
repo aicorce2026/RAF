@@ -17,6 +17,11 @@ class AuthenticationTests(TestCase):
         response = self.client.get(self.register_url)
         self.assertEqual(response.status_code, 200)
 
+    def test_register_rejects_unsupported_http_method(self):
+        response = self.client.put(self.register_url)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(User.objects.count(), 1)
+
     def test_valid_registration_creates_user(self):
         data = {
             'username': 'newuser',

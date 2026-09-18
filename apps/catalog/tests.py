@@ -7,7 +7,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse, resolve
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
-from apps.core.validators import BOOK_PDF_MAX_SIZE
+from apps.core.validators import BOOK_PDF_MAX_SIZE, validate_book_pdf_upload
 from .models import Author, Category, Book
 
 class CatalogModelTests(TestCase):
@@ -165,6 +165,14 @@ class BookUploadValidationTests(TestCase):
 
     def test_valid_pdf_passes_model_validation(self):
         self._book('book.pdf', b'%PDF-1.4 content').full_clean()
+
+    def test_pdf_validator_restores_file_cursor_position(self):
+        upload = SimpleUploadedFile('book.pdf', b'%PDF-1.4 content')
+        upload.seek(4)
+
+        validate_book_pdf_upload(upload)
+
+        self.assertEqual(upload.tell(), 4)
 
     def test_non_pdf_extension_is_rejected(self):
         with self.assertRaises(ValidationError):

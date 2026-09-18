@@ -513,6 +513,16 @@ class FavoriteListTests(TestCase):
         self.assertContains(response, 'Book 1')
         self.assertNotContains(response, 'Book 2')
 
+    def test_unpublished_favorite_is_hidden(self):
+        Favorite.objects.create(user=self.user1, book=self.book1)
+        self.book1.is_published = False
+        self.book1.save(update_fields=['is_published'])
+
+        self.client.login(username='user1', password='testpass123')
+        response = self.client.get(self.list_url)
+
+        self.assertNotContains(response, self.book1.title)
+
     def test_empty_list_shows_arabic_state(self):
         self.client.login(username='user1', password='testpass123')
         response = self.client.get(self.list_url)
@@ -915,6 +925,13 @@ class ReaderProgressTemplateTests(TestCase):
         response = self._get_reader()
         self.assertIn('initial_page', response.context)
         self.assertIsInstance(response.context['initial_page'], int)
+
+    def test_reader_clamps_saved_page_to_pdf_page_range(self):
+        response = self._get_reader()
+        self.assertContains(
+            response,
+            'Math.max(1, Math.min(SERVER_INITIAL_PAGE, pdfDoc.numPages))',
+        )
 
     def test_reader_does_not_expose_pdf_file_url(self):
         response = self._get_reader()

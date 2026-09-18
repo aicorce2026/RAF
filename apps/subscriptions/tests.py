@@ -7,7 +7,7 @@ from django.db import DatabaseError
 from django.utils import timezone
 from datetime import timedelta
 from unittest.mock import patch
-from apps.core.validators import RECEIPT_MAX_SIZE
+from apps.core.validators import RECEIPT_MAX_SIZE, validate_receipt_upload
 from .models import SubscriptionRequest, Subscription
 from .services import has_active_subscription, get_active_subscription
 from .decorators import active_subscription_required
@@ -370,6 +370,25 @@ class SubscriptionRequestViewTests(TestCase):
         self.assertRedirects(response, self.list_url)
         self.assertEqual(SubscriptionRequest.objects.count(), 1)
 
+    def test_valid_jpeg_extension_and_png_receipts_are_accepted(self):
+        valid_receipts = (
+            ('receipt.jpeg', b'\xff\xd8\xff receipt'),
+            ('receipt.png', b'\x89PNG\r\n\x1a\n receipt'),
+        )
+        for filename, content in valid_receipts:
+            with self.subTest(filename=filename):
+                response = self._post_receipt(filename, content)
+                self.assertRedirects(response, self.list_url)
+        self.assertEqual(SubscriptionRequest.objects.count(), 2)
+
+    def test_receipt_validator_restores_file_cursor_position(self):
+        upload = SimpleUploadedFile('receipt.pdf', b'%PDF-1.4 receipt')
+        upload.seek(4)
+
+        validate_receipt_upload(upload)
+
+        self.assertEqual(upload.tell(), 4)
+
     def test_receipt_validation_runs_on_model_full_clean(self):
         sub_request = SubscriptionRequest(
             user=self.user,
@@ -383,6 +402,12 @@ class SubscriptionRequestViewTests(TestCase):
         self.client.login(username='viewuser', password='testpass123')
         response = self.client.get(self.create_url)
         self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_request_creation_rejects_unsupported_http_method(self):
+        self.client.login(username='viewuser', password='testpass123')
+        response = self.client.put(self.create_url)
+        self.assertEqual(response.status_code, 405)
         self.assertFalse(SubscriptionRequest.objects.exists())
 
     def test_request_creation_requires_csrf(self):
@@ -514,6 +539,23 @@ class SubscriptionAdminWorkflowTests(TestCase):
         req.refresh_from_db()
         self.assertEqual(req.status, SubscriptionRequest.Status.PENDING)
         self.assertIsNone(req.reviewed_by)
+
+    def test_regular_user_cannot_execute_admin_action(self):
+        req = self._pending_request()
+        self.client.logout()
+        self.client.login(username='reguser', password='testpass123')
+
+        response = self.client.post(
+            reverse('admin:subscriptions_subscriptionrequest_changelist'),
+            {
+                'action': 'approve_requests',
+                '_selected_action': [req.pk],
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        req.refresh_from_db()
+        self.assertEqual(req.status, SubscriptionRequest.Status.PENDING)
 
 
 # ---------------------------------------------------------------------------
@@ -796,6 +838,34 @@ class ProtectedReceiptEndpointTests(TestCase):
         response = self.client.get(self.receipt_url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/pdf')
+
+    def test_image_receipts_use_safe_content_types(self):
+        self.client.login(username='staffuser', password='testpass123')
+        image_receipts = (
+            ('test_receipt.jpg', b'\xff\xd8\xff receipt', 'image/jpeg'),
+            ('test_receipt.png', b'\x89PNG\r\n\x1a\n receipt', 'image/png'),
+        )
+
+        for filename, content, expected_content_type in image_receipts:
+            with self.subTest(filename=filename):
+                self.sub_request.receipt_file.delete(save=False)
+                self.sub_request.receipt_file = SimpleUploadedFile(
+                    filename,
+                    content,
+                )
+                self.sub_request.save(update_fields=['receipt_file'])
+                stored_filename = os.path.basename(
+                    self.sub_request.receipt_file.name
+                )
+                response = self.client.get(
+                    f'/media/subscriptions/receipts/{stored_filename}'
+                )
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(
+                    response['Content-Type'],
+                    expected_content_type,
+                )
+                response.close()
         
     def test_missing_receipt_returns_404_for_staff(self):
         self.client.login(username='staffuser', password='testpass123')

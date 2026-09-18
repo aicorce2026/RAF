@@ -1531,3 +1531,99 @@ Results:
 
 Status:
 PASSED
+
+---
+
+## Phase 18 - Full Test Suite and Regression Pass
+
+Date:
+2026-09-18
+
+Status:
+COMPLETE
+
+### Scope
+
+- Re-audited authentication, catalog visibility/search, subscription requests and admin review, active-subscription boundaries, protected PDFs, receipt security, Favorites, ReadingProgress, My Library, upload validation, HTTP methods/CSRF, template exposure, URL routing, and database constraints.
+- Reproduced the untouched Phase 17 baseline before changing code.
+- Exercised the anonymous, registered non-subscriber, active subscriber, expired subscriber, and staff journeys through the existing Django test infrastructure.
+
+### Untouched Baseline
+
+- Accounts: Ran 18 tests in 14.304s... OK
+- Catalog: Ran 56 tests in 9.748s... OK
+- Subscriptions: Ran 87 tests in 116.297s... OK
+- Reading: Ran 127 tests in 188.774s... OK
+- Core: Ran 14 tests in 6.406s... OK
+- Full suite: Ran 302 tests in 334.027s... OK
+
+An initial Subscriptions invocation reached the command runner's 120-second ceiling near completion; it showed no test failure. The same untouched suite was rerun with a longer ceiling and completed successfully with the result above.
+
+### Regression Discovered and Fixed
+
+- Discovered that the dedicated Favorites page filtered by user but not by publication status, allowing an already-favorited book to remain visible after it was unpublished.
+- Fixed the query with `book__is_published=True`, matching the established public catalog and My Library visibility rule.
+- No other V1 regression was found.
+
+### Regression Tests Added
+
+- Unpublished books are hidden from the dedicated Favorites page.
+- Reader resume JavaScript clamps a saved page to the loaded PDF's valid page range.
+- Book PDF and receipt validators restore the upload file cursor after signature reads.
+- Valid `.jpeg` and PNG receipt uploads are accepted in addition to the already-covered PDF/JPG paths.
+- Protected JPEG and PNG receipts return `image/jpeg` and `image/png` respectively.
+- Registration and subscription request creation reject unsupported HTTP methods.
+- An ordinary user cannot execute a subscription admin action.
+
+Focused result:
+Ran 9 tests in 12.079s... OK
+
+### Final Application Test Suites
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py test apps.accounts -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.catalog -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.subscriptions -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.reading -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.core -v 2`
+
+Results:
+
+- Accounts: Ran 19 tests in 17.451s... OK
+- Catalog: Ran 57 tests in 9.559s... OK
+- Subscriptions: Ran 92 tests in 127.662s... OK
+- Reading: Ran 129 tests in 189.442s... OK
+- Core: Ran 14 tests in 6.667s... OK
+
+Status:
+PASSED
+
+### Final Full Test Suite
+
+Command:
+`.venv\Scripts\python.exe manage.py test`
+
+Result:
+Ran 311 tests in 351.697s... OK
+
+Status:
+PASSED
+
+### System, Migration, and Configuration Checks
+
+- Default `manage.py check`: System check identified no issues (0 silenced).
+- `DEBUG=False` check with a verification-only external SECRET_KEY and explicit ALLOWED_HOSTS: System check identified no issues (0 silenced).
+- `manage.py makemigrations --check --dry-run`: No changes detected.
+- No Phase 18 migration was created.
+
+### Regression Outcome
+
+- Authentication, catalog, subscription workflow, admin review, active-subscription boundaries, PDF access, receipt security, Favorites, ReadingProgress, My Library, ownership isolation, CSRF, HTTP methods, routes, and database integrity: PASSED.
+- Raw PDF access remains blocked; receipts remain staff-only; traversal/nested receipt paths remain rejected.
+- No user-facing template exposes a protected PDF or receipt storage URL.
+- Phase 19 remains NOT_STARTED.
