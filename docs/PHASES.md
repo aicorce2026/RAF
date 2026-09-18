@@ -429,7 +429,7 @@ Acceptance Criteria:
 
 ## Phase 13 - PDF Reader MVP
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Provide a basic protected PDF reader.

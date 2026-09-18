@@ -635,3 +635,91 @@ class PublicCatalogRegressionTests(TestCase):
     def test_book_detail_remains_publicly_accessible(self):
         response = self.client.get(reverse('catalog:book_detail', args=[self.book.pk]))
         self.assertEqual(response.status_code, 200)
+
+
+# ---------------------------------------------------------------------------
+# Phase 13 Security Correction: Protected Receipt Endpoint Tests
+# ---------------------------------------------------------------------------
+
+import tempfile
+import os
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class ProtectedReceiptEndpointTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.staff_user = User.objects.create_superuser('staffuser', 'staff@test.com', 'testpass123')
+        self.normal_user = make_user('normaluser', 'testpass123')
+        
+        # Create a pending request with an actual file
+        self.sub_request = SubscriptionRequest.objects.create(
+            user=self.normal_user,
+            payment_method='bank_transfer',
+            status=SubscriptionRequest.Status.PENDING,
+        )
+        self.sub_request.receipt_file = SimpleUploadedFile(
+            'test_receipt.pdf', b'%PDF-1.4 fake receipt', content_type='application/pdf'
+        )
+        self.sub_request.save()
+        
+        # The URL that would normally be served by Django dev server
+        # The re_path uses (?P<path>.+) which captures everything after media/subscriptions/receipts/
+        # e.g., filename
+        filename = os.path.basename(self.sub_request.receipt_file.name)
+        self.receipt_url = f'/media/subscriptions/receipts/{filename}'
+
+    def tearDown(self):
+        import shutil
+        from django.conf import settings
+        if os.path.exists(settings.MEDIA_ROOT):
+            shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+
+    def test_anonymous_cannot_fetch_receipt(self):
+        response = self.client.get(self.receipt_url)
+        # Should redirect to admin login
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/login/', response['Location'])
+
+    def test_authenticated_normal_user_cannot_fetch_receipt(self):
+        self.client.login(username='normaluser', password='testpass123')
+        response = self.client.get(self.receipt_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin/login/', response['Location'])
+        
+    def test_another_normal_user_cannot_fetch_receipt(self):
+        another_user = make_user('anotheruser', 'testpass123')
+        self.client.login(username='anotheruser', password='testpass123')
+        response = self.client.get(self.receipt_url)
+        self.assertEqual(response.status_code, 302)
+        
+    def test_staff_user_can_fetch_receipt(self):
+        self.client.login(username='staffuser', password='testpass123')
+        response = self.client.get(self.receipt_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        
+    def test_missing_receipt_returns_404_for_staff(self):
+        self.client.login(username='staffuser', password='testpass123')
+        response = self.client.get('/media/subscriptions/receipts/nonexistent.pdf')
+        self.assertEqual(response.status_code, 404)
+        
+    def test_receipt_response_headers_are_safe(self):
+        self.client.login(username='staffuser', password='testpass123')
+        response = self.client.get(self.receipt_url)
+        self.assertEqual(response['X-Content-Type-Options'], 'nosniff')
+        self.assertIn('no-store', response['Cache-Control'])
+        
+    def test_receipt_response_is_attachment_not_inline(self):
+        self.client.login(username='staffuser', password='testpass123')
+        response = self.client.get(self.receipt_url)
+        disposition = response.get('Content-Disposition', '')
+        self.assertIn('attachment', disposition)
+        self.assertNotIn('inline', disposition)
+
+    def test_direct_book_pdf_path_remains_blocked(self):
+        response = self.client.get('/media/books/pdfs/somebook.pdf')
+        self.assertEqual(response.status_code, 403)
+

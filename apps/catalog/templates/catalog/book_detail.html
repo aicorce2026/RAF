@@ -21,7 +21,14 @@
                     <h5>الوصف:</h5>
                     <p class="card-text">{{ book.description|linebreaks }}</p>
                 {% endif %}
-                <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary mt-3">العودة إلى الكتب</a>
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    {% if book.pdf_file %}
+                        <a href="{% url 'reading:reader' book.pk %}" class="btn btn-primary">
+                            قراءة الكتاب
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'catalog:book_list' %}" class="btn btn-outline-secondary">العودة إلى الكتب</a>
+                </div>
             </div>
         </div>
     </div>

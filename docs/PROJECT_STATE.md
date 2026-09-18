@@ -11,10 +11,10 @@ Local path: D:\rafia\RAF
 Phase: 02 - Django Application Structure
 Status: COMPLETE
 
-Phase: 12 - Subscription Access Control
+Phase: 13 - PDF Reader MVP
 Status: COMPLETE
 
-Phase: 13 - PDF Reader MVP
+Phase: 14 - Favorites
 Status: NOT_STARTED
 
 Current branch: main
@@ -150,13 +150,13 @@ These models have NOT been implemented yet.
 
 ## Current Objective
 
-Phase 12 - Subscription Access Control is complete.
+Phase 13 - PDF Reader MVP is complete.
 
 The next phase is:
 
-Phase 13 - PDF Reader MVP
+Phase 14 - Favorites
 
-Phase 13 is waiting for explicit user approval before implementation begins.
+Phase 14 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -175,6 +175,7 @@ Book search and filtering (by text, author, and category) is fully functional vi
 SubscriptionRequest and Subscription models created in apps/subscriptions with migration 0001_initial.
 Manual subscription workflow implemented: users can submit requests, admins can approve (creates 30-day subscription) or reject via Django Admin actions.
 Subscription access control implemented: has_active_subscription() service in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
+Protected PDF reader implemented in apps/reading: reader page at /read/<pk>/, streaming endpoint at /read/<pk>/file/. Direct /media/books/pdfs/ access blocked via url interceptor. PDF.js loaded via CDN.
 
 ## Tests and Verification
 
@@ -212,6 +213,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 13 - PDF Reader MVP
+Phase 14 - Favorites
 
-Do not perform Phase 13 implementation before approval.
+Do not perform Phase 14 implementation before approval.
