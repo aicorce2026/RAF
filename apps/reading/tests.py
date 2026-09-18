@@ -1,7 +1,7 @@
 import os
 import tempfile
 from django.test import TestCase, Client, override_settings
-from django.urls import reverse
+from django.urls import resolve, reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -916,3 +916,252 @@ class ReaderProgressTemplateTests(TestCase):
         content = response.content.decode().lower()
         self.assertNotIn('window.print', content)
         self.assertNotIn('type="button"\nwindow', content)
+
+
+# ---------------------------------------------------------------------------
+# My Library Dashboard Tests
+# ---------------------------------------------------------------------------
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp())
+class MyLibraryDashboardTests(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.user_a = make_user('library_user_a')
+        self.user_b = make_user('library_user_b')
+        self.book_a = make_book('User A Library Book')
+        self.book_b = make_book('User B Private Book')
+        self.library_url = reverse('reading:my_library')
+
+    def tearDown(self):
+        import shutil
+        from django.conf import settings
+        if os.path.exists(settings.MEDIA_ROOT):
+            shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
+
+    def login_user_a(self):
+        self.client.login(username='library_user_a', password='testpass123')
+
+    def test_library_url_resolves_to_named_route(self):
+        match = resolve('/reading/library/')
+        self.assertEqual(match.namespace, 'reading')
+        self.assertEqual(match.url_name, 'my_library')
+
+    def test_anonymous_user_is_redirected_to_login(self):
+        response = self.client.get(self.library_url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/accounts/login/', response['Location'])
+
+    def test_authenticated_user_gets_200(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_user_without_subscription_can_view_dashboard(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'لا يوجد اشتراك نشط حالياً')
+
+    def test_expired_subscriber_can_view_dashboard(self):
+        make_expired_subscription(self.user_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_dashboard_uses_correct_template(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertTemplateUsed(response, 'reading/my_library.html')
+
+    def test_dashboard_contains_arabic_heading(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, 'مكتبتي')
+
+    def test_current_users_progress_is_shown(self):
+        ReadingProgress.objects.create(
+            user=self.user_a,
+            book=self.book_a,
+            current_page=12,
+        )
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.book_a.title)
+
+    def test_another_users_progress_is_hidden(self):
+        ReadingProgress.objects.create(
+            user=self.user_b,
+            book=self.book_b,
+            current_page=42,
+        )
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertNotContains(response, self.book_b.title)
+        self.assertNotContains(response, 'الصفحة الأخيرة: 42')
+
+    def test_saved_current_page_is_shown(self):
+        ReadingProgress.objects.create(
+            user=self.user_a,
+            book=self.book_a,
+            current_page=12,
+        )
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, 'الصفحة الأخيرة: 12')
+
+    def test_progress_book_title_is_shown(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.book_a.title)
+
+    def test_progress_author_is_shown(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.book_a.author.name)
+
+    def test_progress_category_is_shown(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.book_a.category.name)
+
+    def test_continue_reading_link_uses_protected_reader(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        reader_url = reverse('reading:reader', args=[self.book_a.pk])
+        self.assertContains(response, reader_url)
+
+    def test_dashboard_does_not_link_to_pdf_file_endpoint(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        pdf_url = reverse('reading:pdf_file', args=[self.book_a.pk])
+        self.assertNotContains(response, pdf_url)
+
+    def test_unpublished_book_progress_is_hidden(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.book_a.is_published = False
+        self.book_a.save(update_fields=['is_published'])
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertNotContains(response, self.book_a.title)
+
+    def test_empty_progress_section_shows_arabic_state(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, 'لا توجد كتب قيد القراءة حالياً.')
+
+    def test_current_users_favorite_is_shown(self):
+        Favorite.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.book_a.title)
+
+    def test_another_users_favorite_is_hidden(self):
+        Favorite.objects.create(user=self.user_b, book=self.book_b)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertNotContains(response, self.book_b.title)
+
+    def test_favorite_title_author_and_category_are_shown(self):
+        Favorite.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.book_a.title)
+        self.assertContains(response, self.book_a.author.name)
+        self.assertContains(response, self.book_a.category.name)
+
+    def test_favorite_links_to_book_detail(self):
+        Favorite.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        detail_url = reverse('catalog:book_detail', args=[self.book_a.pk])
+        self.assertContains(response, detail_url)
+
+    def test_unpublished_favorite_is_hidden(self):
+        Favorite.objects.create(user=self.user_a, book=self.book_a)
+        self.book_a.is_published = False
+        self.book_a.save(update_fields=['is_published'])
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertNotContains(response, self.book_a.title)
+
+    def test_empty_favorites_section_shows_arabic_state(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, 'لا توجد كتب في المفضلة حالياً.')
+
+    def test_dashboard_isolates_favorites_and_progress_by_user(self):
+        Favorite.objects.create(user=self.user_a, book=self.book_a)
+        Favorite.objects.create(user=self.user_b, book=self.book_b)
+        ReadingProgress.objects.create(
+            user=self.user_a,
+            book=self.book_a,
+            current_page=7,
+        )
+        ReadingProgress.objects.create(
+            user=self.user_b,
+            book=self.book_b,
+            current_page=42,
+        )
+
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+
+        self.assertContains(response, self.book_a.title)
+        self.assertContains(response, 'الصفحة الأخيرة: 7')
+        self.assertNotContains(response, self.book_b.title)
+        self.assertNotContains(response, 'الصفحة الأخيرة: 42')
+
+    def test_user_id_query_parameter_cannot_change_ownership(self):
+        Favorite.objects.create(user=self.user_b, book=self.book_b)
+        ReadingProgress.objects.create(
+            user=self.user_b,
+            book=self.book_b,
+            current_page=42,
+        )
+        self.login_user_a()
+        response = self.client.get(
+            self.library_url,
+            {'user_id': self.user_b.pk, 'user': self.user_b.pk},
+        )
+        self.assertNotContains(response, self.book_b.title)
+        self.assertNotContains(response, 'الصفحة الأخيرة: 42')
+
+    def test_active_subscription_status_is_shown(self):
+        make_active_subscription(self.user_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, 'اشتراكك نشط')
+
+    def test_expired_subscription_is_not_shown_as_active(self):
+        make_expired_subscription(self.user_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, 'لا يوجد اشتراك نشط حالياً')
+
+    def test_authenticated_navigation_contains_my_library_link(self):
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertContains(response, self.library_url)
+        self.assertContains(response, 'مكتبتي')
+
+    def test_dashboard_exposes_no_raw_pdf_or_receipt_paths(self):
+        Favorite.objects.create(user=self.user_a, book=self.book_a)
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        content = response.content.decode()
+        self.assertNotIn('books/pdfs/', content)
+        self.assertNotIn('subscriptions/receipts/', content)
+        self.assertNotIn('/media/', content)
+
+    def test_dashboard_has_no_pdf_download_button(self):
+        ReadingProgress.objects.create(user=self.user_a, book=self.book_a)
+        self.login_user_a()
+        response = self.client.get(self.library_url)
+        self.assertNotIn('download', response.content.decode().lower())

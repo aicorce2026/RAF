@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from apps.catalog.models import Book
 from apps.subscriptions.decorators import active_subscription_required
+from apps.subscriptions.services import get_active_subscription
 from .models import Favorite, ReadingProgress
 
 
@@ -128,3 +129,32 @@ def favorite_list(request):
     """
     favorites = Favorite.objects.filter(user=request.user).select_related('book', 'book__author', 'book__category')
     return render(request, 'reading/favorite_list.html', {'favorites': favorites})
+
+
+@login_required
+def my_library(request):
+    """Display the authenticated user's published personal-library items."""
+    reading_progress = ReadingProgress.objects.filter(
+        user=request.user,
+        book__is_published=True,
+    ).select_related(
+        "book",
+        "book__author",
+        "book__category",
+    ).order_by("-updated_at")
+
+    favorites = Favorite.objects.filter(
+        user=request.user,
+        book__is_published=True,
+    ).select_related(
+        "book",
+        "book__author",
+        "book__category",
+    ).order_by("-created_at")
+
+    context = {
+        "reading_progress": reading_progress,
+        "favorites": favorites,
+        "active_subscription": get_active_subscription(request.user),
+    }
+    return render(request, "reading/my_library.html", context)

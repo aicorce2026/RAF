@@ -21,6 +21,9 @@ Phase: 15 - Reading Progress Tracking
 Status: COMPLETE
 
 Phase: 16 - My Library Dashboard
+Status: COMPLETE
+
+Phase: 17 - Validation and Security Hardening
 Status: NOT_STARTED
 
 Current branch: main
@@ -156,13 +159,13 @@ These models have been implemented.
 
 ## Current Objective
 
-Phase 15 - Reading Progress Tracking is complete.
+Phase 16 - My Library Dashboard is complete.
 
 The next phase is:
 
-Phase 16 - My Library Dashboard
+Phase 17 - Validation and Security Hardening
 
-Phase 16 is waiting for explicit user approval before implementation begins.
+Phase 17 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -182,6 +185,7 @@ Manual subscription workflow implemented: users can submit requests, admins can 
 Subscription access control implemented: has_active_subscription() service in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
 Protected PDF reader implemented in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
 Reading progress (Phase 15) implemented in apps/reading: ReadingProgress model (user+book+current_page+created_at+updated_at), migration 0002_readingprogress.py, progress_update endpoint at /reading/<pk>/progress/ (POST-only, active subscription required). Reader resumes from saved page. CSRF protected via hidden form + X-CSRFToken header. Server-side page validation (must be integer >= 1). Ownership always from request.user.
+My Library dashboard (Phase 16) implemented at /reading/library/: login required, but no active subscription required to view. It displays only the authenticated user's published-book reading progress and favorites using select_related queries, plus existing subscription status. Continue Reading links use the protected reading:reader route, so PDF access remains subscription-protected.
 
 ## Tests and Verification
 
@@ -198,6 +202,7 @@ Environment verification completed:
 
 Application tests:
 - Django system check (python manage.py check) passed.
+- Phase 16 full suite passed: 272 tests in 301.105s.
 - Development server (python manage.py runserver) starts successfully.
 - Default Django install page is reachable.
 
@@ -219,6 +224,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 16 - My Library Dashboard
+Phase 17 - Validation and Security Hardening
 
-Do not perform Phase 16 implementation before approval.
+Do not perform Phase 17 implementation before approval.

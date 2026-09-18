@@ -35,8 +35,6 @@ Python 3.14.7
 Status:
 PASSED
 
----
-
 Git version check:
 
 Command:
@@ -1300,6 +1298,107 @@ Search terms:
 - `csrf_exempt`: no matches.
 - `/media/books/pdfs/`: matches are the blocking URL interceptor, security tests, and documentation.
 - `/media/subscriptions/receipts/`: matches are security tests only.
+
+Status:
+PASSED
+
+---
+
+## Phase 16 - My Library Dashboard
+
+Date:
+2026-09-18
+
+Status:
+COMPLETE
+
+### Django System Check
+
+Command:
+`.venv\Scripts\python.exe manage.py check`
+
+Result:
+System check identified no issues (0 silenced).
+
+Status:
+PASSED
+
+---
+
+### Application Test Suites
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py test apps.reading -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.subscriptions -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.catalog -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.core -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.accounts -v 2`
+
+Results:
+
+- Reading: Ran 124 tests in 178.850s... OK
+- Subscriptions: Ran 74 tests in 96.712s... OK
+- Catalog: Ran 50 tests in 7.836s... OK
+- Core: Ran 14 tests in 6.455s... OK
+- Accounts: Ran 10 tests in 8.983s... OK
+
+Status:
+PASSED
+
+---
+
+### Full Test Suite
+
+Command:
+`.venv\Scripts\python.exe manage.py test`
+
+Result:
+Ran 272 tests in 301.105s... OK
+
+Status:
+PASSED
+
+---
+
+### Dashboard Verification
+
+- Anonymous users are redirected to login: CONFIRMED
+- Logged-in users without an active subscription can view My Library: CONFIRMED
+- Expired subscribers can view My Library: CONFIRMED
+- Active subscription status is displayed using the existing service: CONFIRMED
+- Favorites and reading progress are filtered by request.user: CONFIRMED
+- Forged user and user_id query parameters do not change ownership: CONFIRMED
+- Another user's favorites and reading progress are hidden: CONFIRMED
+- Unpublished books are hidden without deleting saved records: CONFIRMED
+- Continue Reading links use reading:reader: CONFIRMED
+- Dashboard does not link to reading:pdf_file or expose raw media paths: CONFIRMED
+- Existing Phase 13 PDF protection tests pass: CONFIRMED
+- Existing Phase 14 Favorites tests pass: CONFIRMED
+- Existing Phase 15 ReadingProgress tests pass: CONFIRMED
+- No new model or migration was created: CONFIRMED
+
+---
+
+### Final Verification
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py makemigrations --check --dry-run`
+
+`git diff --check`
+
+Results:
+
+- Migration consistency check reported no changes detected.
+- Git diff check passed; only informational LF-to-CRLF warnings were emitted.
+- No runtime or template usage of `pdf_file.url` or `receipt_file.url` was found.
+- No application code uses `csrf_exempt`.
+- Raw PDF and receipt media path matches are limited to protection code, tests, and documentation.
 
 Status:
 PASSED

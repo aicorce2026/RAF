@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}المكتبة الرقمية - مكتبتي{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-lg-10 offset-lg-1">
+        <h2 class="mb-4">مكتبتي</h2>
+
+        <section class="mb-5" aria-labelledby="continue-reading-heading">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 id="continue-reading-heading" class="h4 mb-0">متابعة القراءة</h3>
+            </div>
+
+            {% if reading_progress %}
+                <div class="row row-cols-1 row-cols-md-2 g-4">
+                    {% for progress in reading_progress %}
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex flex-column">
+                                    <h4 class="card-title h5">{{ progress.book.title }}</h4>
+                                    <p class="card-text mb-1">المؤلف: {{ progress.book.author.name }}</p>
+                                    <p class="card-text text-muted mb-2">التصنيف: {{ progress.book.category.name }}</p>
+                                    <p class="card-text fw-semibold">الصفحة الأخيرة: {{ progress.current_page }}</p>
+                                    <p class="card-text small text-muted">
+                                        آخر تحديث: {{ progress.updated_at|date:"Y/m/d H:i" }}
+                                    </p>
+                                    <div class="mt-auto">
+                                        <a href="{% url 'reading:reader' progress.book.pk %}" class="btn btn-primary btn-sm">
+                                            متابعة القراءة
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">لا توجد كتب قيد القراءة حالياً.</div>
+            {% endif %}
+        </section>
+
+        <section class="mb-5" aria-labelledby="favorites-heading">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 id="favorites-heading" class="h4 mb-0">المفضلة</h3>
+                <a href="{% url 'reading:favorite_list' %}" class="btn btn-outline-secondary btn-sm">
+                    عرض قائمة المفضلة
+                </a>
+            </div>
+
+            {% if favorites %}
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                    {% for favorite in favorites %}
+                        <div class="col">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body d-flex flex-column">
+                                    <h4 class="card-title h5">{{ favorite.book.title }}</h4>
+                                    <p class="card-text mb-1">المؤلف: {{ favorite.book.author.name }}</p>
+                                    <p class="card-text text-muted">التصنيف: {{ favorite.book.category.name }}</p>
+                                    <div class="mt-auto">
+                                        <a href="{% url 'catalog:book_detail' favorite.book.pk %}" class="btn btn-outline-primary btn-sm">
+                                            تفاصيل الكتاب
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info mb-0">لا توجد كتب في المفضلة حالياً.</div>
+            {% endif %}
+        </section>
+
+        <section class="mb-4" aria-labelledby="subscription-heading">
+            <h3 id="subscription-heading" class="h4 mb-3">حالة الاشتراك</h3>
+            {% if active_subscription %}
+                <div class="alert alert-success mb-0">
+                    اشتراكك نشط من {{ active_subscription.start_at|date:"Y/m/d" }}
+                    حتى {{ active_subscription.end_at|date:"Y/m/d" }}.
+                </div>
+            {% else %}
+                <div class="alert alert-secondary mb-0">
+                    لا يوجد اشتراك نشط حالياً.
+                    <a href="{% url 'subscriptions:request_list' %}" class="alert-link">عرض حالة الاشتراك</a>
+                </div>
+            {% endif %}
+        </section>
+    </div>
+</div>
+{% endblock %}

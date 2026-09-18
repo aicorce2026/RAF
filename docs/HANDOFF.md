@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 15 - Reading Progress Tracking
+Phase: 16 - My Library Dashboard
 
 Current phase status:
 
@@ -55,7 +55,7 @@ COMPLETE
 
 Next phase:
 
-Phase: 16 - My Library Dashboard
+Phase: 17 - Validation and Security Hardening
 
 Next phase status:
 
@@ -138,6 +138,7 @@ Manual subscription workflow: users submit requests via /subscriptions/request/,
 Subscription access control: has_active_subscription() in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
 Protected PDF reader in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
 Reading progress (Phase 15) is fully implemented: ReadingProgress model in apps/reading/models.py, migration apps/reading/migrations/0002_readingprogress.py, progress_update endpoint at /reading/<pk>/progress/ (POST-only, active subscription required). Reader resumes from saved page (context variable initial_page). CSRF protected via hidden form + X-CSRFToken header. Server-side page validation (page must be integer >= 1). Ownership always derived from request.user. Django Admin registered in reading/admin.py.
+My Library dashboard (Phase 16) is fully implemented at /reading/library/. It requires login but not an active subscription to view. Continue Reading shows the current user's published-book ReadingProgress and links to the protected reader. Favorites shows the current user's published-book Favorite records and links to catalog details. Subscription status reuses get_active_subscription(). Unpublished books and other users' data are excluded server-side. No new model or migration was created.
 
 ---
 
@@ -161,13 +162,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 15 is complete.
+Phase 16 is complete.
 
 The next implementation phase is:
 
-Phase 16 - My Library Dashboard
+Phase 17 - Validation and Security Hardening
 
-Do not begin Phase 16 until the user explicitly approves continuing.
+Do not begin Phase 17 until the user explicitly approves continuing.
 
 ---
 
@@ -177,7 +178,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 16 - My Library Dashboard
+Phase 17 - Validation and Security Hardening
 
 Do not implement any later phase.
 
@@ -272,8 +273,6 @@ The new agent must wait for user approval before continuing implementation.
 ## Known Issues
 
 No known project application issues.
-
-The application has not been created yet.
 
 ---
 

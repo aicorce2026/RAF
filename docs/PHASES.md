@@ -547,7 +547,7 @@ Acceptance Criteria:
 
 ## Phase 16 - My Library Dashboard
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Create the user's personal library area.
@@ -557,6 +557,15 @@ Display:
 - Continue Reading.
 - Favorites.
 - Subscription status.
+
+Implementation:
+
+- Route: `/reading/library/` (`reading:my_library`).
+- Authentication is required.
+- An active subscription is not required to view the dashboard.
+- Continue Reading links use the protected `reading:reader` route.
+- Favorites and reading progress are filtered by the authenticated user and published books.
+- Existing `Favorite` and `ReadingProgress` models are reused; no new model or migration was created.
 
 Acceptance Criteria:
 
