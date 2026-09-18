@@ -502,7 +502,7 @@ Acceptance Criteria:
 
 ## Phase 15 - Reading Progress
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Remember the last page each user read.
@@ -510,6 +510,21 @@ Remember the last page each user read.
 Model:
 
 ReadingProgress
+
+Fields:
+- user: ForeignKey(settings.AUTH_USER_MODEL, CASCADE, related_name="reading_progress")
+- book: ForeignKey(catalog.Book, CASCADE, related_name="reading_progress")
+- current_page: PositiveIntegerField(default=1)
+- created_at: DateTimeField(auto_now_add=True)
+- updated_at: DateTimeField(auto_now=True)
+- UniqueConstraint(fields=["user","book"], name="unique_user_book_reading_progress")
+- Ordering: ["-updated_at"]
+
+Migration:
+apps/reading/migrations/0002_readingprogress.py
+
+Progress update route:
+/reading/<int:pk>/progress/   name=reading:progress_update   POST-only
 
 Tasks:
 
@@ -526,6 +541,7 @@ Acceptance Criteria:
 - Duplicate progress records do not exist.
 - Users cannot modify another user's progress.
 - Tests pass.
+
 
 ---
 

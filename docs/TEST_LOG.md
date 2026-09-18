@@ -1207,3 +1207,99 @@ PASSED
 - Only published books can be favorited: CONFIRMED (404 on unpublished)
 - No direct PDF URLs exposed in favorites list: CONFIRMED
 - Users can only see their own favorites: CONFIRMED
+
+---
+
+## Phase 15 - Reading Progress
+
+Date:
+2026-09-18
+
+Status:
+COMPLETE
+
+### Application Test Suites
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py test apps.reading -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.subscriptions -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.catalog -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.core -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.accounts -v 2`
+
+Results:
+
+- Reading: Ran 94 tests in 132.076s... OK
+- Subscriptions: Ran 74 tests in 100.091s... OK
+- Catalog: Ran 50 tests in 7.720s... OK
+- Core: Ran 14 tests in 5.976s... OK
+- Accounts: Ran 10 tests in 9.289s... OK
+
+Status:
+PASSED
+
+---
+
+### Full Test Suite
+
+Command:
+`.venv\Scripts\python.exe manage.py test`
+
+Result:
+Ran 242 tests in 252.900s... OK
+
+Status:
+PASSED
+
+---
+
+### Phase 15 Coverage Verification
+
+- ReadingProgress is unique per user and book: CONFIRMED
+- User A cannot overwrite user B ReadingProgress: CONFIRMED
+- Forged user and user_id POST values cannot change ownership: CONFIRMED
+- Expired and future subscribers cannot update progress: CONFIRMED
+- Saved progress cannot bypass reader subscription access: CONFIRMED
+- Progress updates require POST; GET returns 405: CONFIRMED
+- Page 0 and negative page numbers return 400: CONFIRMED
+- Reader resumes from the authenticated user's saved page: CONFIRMED
+- Favorite behavior remains passing in the reading regression suite: CONFIRMED
+
+---
+
+### Final Verification
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py check`
+
+`.venv\Scripts\python.exe manage.py makemigrations --check --dry-run`
+
+`git diff --check`
+
+Results:
+
+- Django system check identified no issues (0 silenced).
+- Migration consistency check reported no changes detected.
+- Git diff check passed; only informational LF-to-CRLF warnings were emitted.
+
+Status:
+PASSED
+
+### Security Search
+
+Search terms:
+
+- `pdf_file.url`: no runtime or template usage; matches are negative test assertions and historical test documentation.
+- `receipt_file.url`: no runtime or template usage; the only match is historical test documentation.
+- `csrf_exempt`: no matches.
+- `/media/books/pdfs/`: matches are the blocking URL interceptor, security tests, and documentation.
+- `/media/subscriptions/receipts/`: matches are security tests only.
+
+Status:
+PASSED

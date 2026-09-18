@@ -1,25 +1,36 @@
 from django.shortcuts import get_object_or_404, render, redirect
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from apps.catalog.models import Book
 from apps.subscriptions.decorators import active_subscription_required
-from .models import Favorite
+from .models import Favorite, ReadingProgress
+
 
 @active_subscription_required
 def reader(request, pk):
-    """Protected PDF reader page. Requires authentication and an active subscription."""
+    """
+    Protected PDF reader page. Requires authentication and an active subscription.
+    Loads the user's last saved page so reading can resume from where they left off.
+    """
     book = get_object_or_404(Book, pk=pk, is_published=True)
     if not book.pdf_file:
         raise Http404("هذا الكتاب لا يحتوي على ملف PDF.")
     protected_pdf_url = reverse("reading:pdf_file", args=[book.pk])
+
+    # Retrieve the saved reading progress for this user and book, if it exists.
+    # Do NOT create a record here — only create/update when the user actually navigates pages.
+    progress = ReadingProgress.objects.filter(user=request.user, book=book).first()
+    initial_page = progress.current_page if progress else 1
+
     return render(
         request,
         'reading/reader.html',
         {
             'book': book,
             'protected_pdf_url': protected_pdf_url,
+            'initial_page': initial_page,
         }
     )
 
@@ -43,6 +54,50 @@ def pdf_file(request, pk):
     response['X-Content-Type-Options'] = 'nosniff'
     response['Cache-Control'] = 'private, no-store'
     return response
+
+
+@active_subscription_required
+@require_POST
+def progress_update(request, pk):
+    """
+    Protected POST-only endpoint to save reading progress.
+
+    Accepts a page number in POST data and creates or updates the ReadingProgress
+    record for request.user + book. Ownership is always derived from request.user —
+    client-supplied user identifiers are never accepted.
+
+    Returns JSON: {"ok": true, "current_page": <number>}
+    Returns 400 for invalid page values.
+    Returns 404 for non-existent or unpublished books.
+    """
+    book = get_object_or_404(Book, pk=pk, is_published=True)
+
+    # Server-side page validation — never trust the client alone.
+    raw_page = request.POST.get('page')
+    if raw_page is None:
+        return JsonResponse({"ok": False, "error": "رقم الصفحة مطلوب."}, status=400)
+
+    try:
+        page = int(raw_page)
+    except (ValueError, TypeError):
+        return JsonResponse({"ok": False, "error": "رقم الصفحة يجب أن يكون عدداً صحيحاً."}, status=400)
+
+    if page < 1:
+        return JsonResponse({"ok": False, "error": "رقم الصفحة يجب أن يكون 1 أو أكبر."}, status=400)
+
+    # Use get_or_create to avoid duplicate records, then update the page.
+    progress, _created = ReadingProgress.objects.get_or_create(
+        user=request.user,
+        book=book,
+        defaults={"current_page": page},
+    )
+    if not _created:
+        # Record already existed — update the page only if it actually changed.
+        if progress.current_page != page:
+            progress.current_page = page
+            progress.save(update_fields=["current_page", "updated_at"])
+
+    return JsonResponse({"ok": True, "current_page": progress.current_page})
 
 
 @login_required

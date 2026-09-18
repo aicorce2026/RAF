@@ -51,6 +51,14 @@ Phase: 15 - Reading Progress Tracking
 
 Current phase status:
 
+COMPLETE
+
+Next phase:
+
+Phase: 16 - My Library Dashboard
+
+Next phase status:
+
 NOT_STARTED
 
 Current branch:
@@ -129,6 +137,7 @@ SubscriptionRequest and Subscription data models are fully implemented in apps/s
 Manual subscription workflow: users submit requests via /subscriptions/request/, view status at /subscriptions/. Admins approve/reject via Django Admin actions. Approval creates exactly one 30-day Subscription.
 Subscription access control: has_active_subscription() in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
 Protected PDF reader in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
+Reading progress (Phase 15) is fully implemented: ReadingProgress model in apps/reading/models.py, migration apps/reading/migrations/0002_readingprogress.py, progress_update endpoint at /reading/<pk>/progress/ (POST-only, active subscription required). Reader resumes from saved page (context variable initial_page). CSRF protected via hidden form + X-CSRFToken header. Server-side page validation (page must be integer >= 1). Ownership always derived from request.user. Django Admin registered in reading/admin.py.
 
 ---
 
@@ -152,13 +161,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 14 is complete.
+Phase 15 is complete.
 
 The next implementation phase is:
 
-Phase 15 - Reading Progress Tracking
+Phase 16 - My Library Dashboard
 
-Do not begin Phase 15 until the user explicitly approves continuing.
+Do not begin Phase 16 until the user explicitly approves continuing.
 
 ---
 
@@ -168,7 +177,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 15 - Reading Progress Tracking
+Phase 16 - My Library Dashboard
 
 Do not implement any later phase.
 

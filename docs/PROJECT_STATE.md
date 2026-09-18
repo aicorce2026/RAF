@@ -18,6 +18,9 @@ Phase: 14 - Favorites
 Status: COMPLETE
 
 Phase: 15 - Reading Progress Tracking
+Status: COMPLETE
+
+Phase: 16 - My Library Dashboard
 Status: NOT_STARTED
 
 Current branch: main
@@ -138,7 +141,7 @@ Do not introduce additional frameworks or infrastructure without explicit approv
 
 These applications have been created and registered.
 
-## Planned Main Models
+## V1 Main Models
 
 - User (Django built-in)
 - Author
@@ -149,23 +152,22 @@ These applications have been created and registered.
 - Favorite
 - ReadingProgress
 
-These models have NOT been implemented yet.
+These models have been implemented.
 
 ## Current Objective
 
-Phase 14 - Favorites is complete.
+Phase 15 - Reading Progress Tracking is complete.
 
 The next phase is:
 
-Phase 15 - Reading Progress Tracking
+Phase 16 - My Library Dashboard
 
-Phase 15 is waiting for explicit user approval before implementation begins.
+Phase 16 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
 No known application issues.
 
-The Django base project has been created.
 The SQLite database has been created and initial migrations applied.
 The five Django applications have been created.
 Basic authentication (registration, login, logout, profile) has been implemented using Django's built-in User model.
@@ -178,8 +180,8 @@ Book search and filtering (by text, author, and category) is fully functional vi
 SubscriptionRequest and Subscription models created in apps/subscriptions with migration 0001_initial.
 Manual subscription workflow implemented: users can submit requests, admins can approve (creates 30-day subscription) or reject via Django Admin actions.
 Subscription access control implemented: has_active_subscription() service in services.py, active_subscription_required decorator in decorators.py. Public catalog pages remain fully public.
-Protected PDF reader implemented in apps/reading: reader page at /read/<pk>/, streaming endpoint at /read/<pk>/file/. Direct /media/books/pdfs/ access blocked via url interceptor. PDF.js loaded via CDN.
-Favorites functionality implemented in apps/reading: users can add/remove books to their favorites and view their list. Favorite state rendered server-side in book detail views.
+Protected PDF reader implemented in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
+Reading progress (Phase 15) implemented in apps/reading: ReadingProgress model (user+book+current_page+created_at+updated_at), migration 0002_readingprogress.py, progress_update endpoint at /reading/<pk>/progress/ (POST-only, active subscription required). Reader resumes from saved page. CSRF protected via hidden form + X-CSRFToken header. Server-side page validation (must be integer >= 1). Ownership always from request.user.
 
 ## Tests and Verification
 
@@ -217,6 +219,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 15 - Reading Progress Tracking
+Phase 16 - My Library Dashboard
 
-Do not perform Phase 15 implementation before approval.
+Do not perform Phase 16 implementation before approval.

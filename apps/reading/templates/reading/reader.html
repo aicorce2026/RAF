@@ -36,6 +36,11 @@
     </div>
 </div>
 
+{# Hidden form provides the CSRF token for the fetch() progress save call #}
+<form id="csrf-form" style="display:none;">
+    {% csrf_token %}
+</form>
+
 <!-- PDF.js via CDN -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
@@ -48,6 +53,12 @@
 
     // The ONLY URL used to load the PDF — a protected Django endpoint, never a media URL
     const PDF_URL = '{{ protected_pdf_url }}';
+
+    // URL for saving reading progress — protected by subscription + CSRF
+    const PROGRESS_URL = '{% url "reading:progress_update" book.pk %}';
+
+    // The server-provided initial page (clamped client-side after PDF loads)
+    const SERVER_INITIAL_PAGE = {{ initial_page }};
 
     const canvas = document.getElementById('pdf-canvas');
     const ctx = canvas.getContext('2d');
@@ -64,14 +75,34 @@
     let scale = 1.4;
     let rendering = false;
 
+    // Read the CSRF token from the hidden form — never disabled, never exempt
+    function getCsrfToken() {
+        var input = document.querySelector('#csrf-form [name=csrfmiddlewaretoken]');
+        return input ? input.value : '';
+    }
+
+    // Save the current page to the server via a protected POST endpoint.
+    // Failures are silently ignored so PDF reading is never interrupted.
+    function saveProgress(page) {
+        var formData = new FormData();
+        formData.append('page', page);
+        fetch(PROGRESS_URL, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfToken() },
+            body: formData,
+        }).catch(function () {
+            // Network or server error — reading continues uninterrupted
+        });
+    }
+
     function renderPage(num) {
         if (rendering) return;
         rendering = true;
         pdfDoc.getPage(num).then(function (page) {
-            const viewport = page.getViewport({ scale: scale });
+            var viewport = page.getViewport({ scale: scale });
             canvas.width = viewport.width;
             canvas.height = viewport.height;
-            const renderCtx = { canvasContext: ctx, viewport: viewport };
+            var renderCtx = { canvasContext: ctx, viewport: viewport };
             page.render(renderCtx).promise.then(function () {
                 rendering = false;
                 pageInfoEl.textContent = 'الصفحة ' + num + ' من ' + pdfDoc.numPages;
@@ -84,6 +115,12 @@
 
     pdfjsLib.getDocument(PDF_URL).promise.then(function (pdf) {
         pdfDoc = pdf;
+
+        // Clamp the server-provided initial page within valid bounds.
+        // Protects against old or corrupted saved values without breaking the reader.
+        var startPage = Math.max(1, Math.min(SERVER_INITIAL_PAGE, pdfDoc.numPages));
+        currentPage = startPage;
+
         renderPage(currentPage);
         btnPrev.disabled = false;
         btnNext.disabled = false;
@@ -93,10 +130,18 @@
     });
 
     btnPrev.addEventListener('click', function () {
-        if (currentPage > 1) { currentPage--; renderPage(currentPage); }
+        if (currentPage > 1) {
+            currentPage--;
+            renderPage(currentPage);
+            saveProgress(currentPage);
+        }
     });
     btnNext.addEventListener('click', function () {
-        if (currentPage < pdfDoc.numPages) { currentPage++; renderPage(currentPage); }
+        if (currentPage < pdfDoc.numPages) {
+            currentPage++;
+            renderPage(currentPage);
+            saveProgress(currentPage);
+        }
     });
     btnZoomIn.addEventListener('click', function () {
         scale = Math.min(scale + 0.2, 3.0); renderPage(currentPage);
