@@ -706,7 +706,7 @@ Result:
 
 ## Phase 20 - Free Demo Deployment and V1 Acceptance
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Deploy and verify the first online demonstration version.
@@ -737,6 +737,21 @@ Acceptance Criteria:
 - Persistence works.
 - TEST_LOG.md contains final acceptance results.
 - PROJECT_STATE.md marks V1 complete.
+
+Result:
+
+- The V1 demo is live over HTTPS at https://wahibalkabodi.pythonanywhere.com on PythonAnywhere Free.
+- The homepage, static files, RTL styling, and developer footer loaded successfully.
+- Django Admin access, superuser login, category creation, author creation, and PDF book creation succeeded.
+- The published book appeared publicly.
+- Anonymous and non-subscriber reader access followed the expected login and subscription redirects.
+- Subscription request submission, administrator approval, and creation of a 30-day active subscription succeeded.
+- The active subscriber opened the protected reader and protected PDF endpoint successfully.
+- Logged-out access to `/reading/1/file/` redirected to login.
+- Reading progress persisted, My Library displayed the saved last page, and Favorites appeared correctly.
+- The raw `/media/books/pdfs/...` deployment URL bypass check was intentionally skipped by the user. Prior automated regression/security tests cover raw media blocking, but deployed raw-media-path behavior was not manually re-tested during Phase 20.
+- PythonAnywhere Free resource and storage limits apply. SQLite and locally uploaded media are acceptable for this demo, but are not the recommended long-term production architecture.
+- No Phase 20 application code or migration was created.
 
 Do NOT begin V2 automatically.
 

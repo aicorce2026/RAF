@@ -1735,3 +1735,80 @@ PASSED
 - Tracked-secret review found only the documented development fallback, placeholders, and test credentials; no real secret, private key, database, upload, or collected-static artifact is tracked.
 - `git diff --check` passed; only informational LF-to-CRLF warnings were emitted.
 - Phase 20 remains NOT_STARTED.
+
+---
+
+## Phase 20 - Free Demo Deployment and V1 Acceptance
+
+Date:
+2026-09-18
+
+Status:
+COMPLETE
+
+### Deployment
+
+- Live demo: https://wahibalkabodi.pythonanywhere.com
+- Platform: PythonAnywhere Free
+- PythonAnywhere username: `wahibalkabodi`
+- Project path: `/home/wahibalkabodi/RAF`
+- Virtual environment: `/home/wahibalkabodi/.virtualenvs/rafenv`
+- Python: 3.13.1
+- Django: 5.2.17
+- Database: SQLite
+- WSGI configuration: working
+- `DEBUG=False`
+- `ALLOWED_HOSTS` includes `wahibalkabodi.pythonanywhere.com`
+- `CSRF_TRUSTED_ORIGINS` includes `https://wahibalkabodi.pythonanywhere.com`
+- `SECRET_KEY` is loaded externally and no real secret was committed
+- No `/media/` static mapping was added
+- HSTS remains disabled for the demo with `SECURE_HSTS_SECONDS=0`
+
+### Static Files
+
+- Collection succeeded: 128 static files copied and 384 post-processed.
+- Observed collected-static size: approximately 5.1 MiB.
+- Static files and RTL styling loaded successfully on the deployed site.
+
+### Deployed Acceptance Journey
+
+1. Homepage loaded successfully over HTTPS: PASSED
+2. Static files and RTL styling loaded correctly: PASSED
+3. Developer footer was visible: PASSED
+4. Django Admin was accessible: PASSED
+5. Superuser login worked: PASSED
+6. Category creation worked: PASSED
+7. Author creation worked: PASSED
+8. Book creation with a PDF worked: PASSED
+9. The published book appeared publicly: PASSED
+10. Anonymous “Read Book” access redirected to login: PASSED
+11. A logged-in user without a subscription was redirected to the subscription page: PASSED
+12. Subscription request submission worked: PASSED
+13. Administrator approval worked: PASSED
+14. The approved user received a 30-day active subscription: PASSED
+15. The active subscriber opened the protected reader: PASSED
+16. The protected PDF endpoint worked for the active subscriber: PASSED
+17. Logged-out access to `/reading/1/file/` redirected to login: PASSED
+18. Reading progress persisted: PASSED
+19. My Library showed the saved last page: PASSED
+20. Favorites appeared correctly in My Library: PASSED
+
+### Intentionally Skipped Manual Check
+
+The raw `/media/books/pdfs/...` deployment URL bypass test was intentionally
+skipped by the user. Automated regression/security tests previously cover raw
+media blocking, but deployed raw-media-path behavior was not manually re-tested
+during Phase 20.
+
+### Automated Regression Baseline
+
+No new Phase 20 automated test count is claimed. The last fully automated
+regression baseline remains 312 passing tests after the developer footer
+addition.
+
+### Demo Limitations
+
+- PythonAnywhere Free has resource and storage limitations.
+- SQLite and locally uploaded media are acceptable for this demonstration.
+- SQLite and local uploaded-media storage are not the recommended long-term production architecture.
+- No Phase 20 application code or migration was created.

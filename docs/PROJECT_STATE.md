@@ -33,7 +33,7 @@ Phase: 19 - Production and Deployment Preparation
 Status: COMPLETE
 
 Phase: 20 - Free Demo Deployment and V1 Acceptance
-Status: NOT_STARTED
+Status: COMPLETE
 
 Current branch: main
 
@@ -168,13 +168,14 @@ These models have been implemented.
 
 ## Current Objective
 
-Phase 19 - Production and Deployment Preparation is complete.
+Phase 20 - Free Demo Deployment and V1 Acceptance is complete.
 
-The next phase is:
+V1 is deployed as a free demonstration at:
 
-Phase 20 - Free Demo Deployment and V1 Acceptance
+https://wahibalkabodi.pythonanywhere.com
 
-Phase 20 is waiting for explicit user approval before implementation begins.
+No later phase is active. Do not begin V2 or additional implementation without
+explicit user approval.
 
 ## Known Issues
 
@@ -198,6 +199,7 @@ My Library dashboard (Phase 16) implemented at /reading/library/: login required
 Validation and security hardening (Phase 17) is complete. Receipt uploads accept only PDF/JPG/JPEG/PNG files up to 5 MiB, and Book uploads accept only PDF files up to 50 MiB; both reject empty files and verify lightweight file signatures. Safe redirects use Django's host-aware utility. Receipt paths reject traversal/nested values, state-changing endpoints retain CSRF and method protections, and environment-driven DEBUG/ALLOWED_HOSTS configuration supports DEBUG=False when an external SECRET_KEY is supplied.
 Full regression testing (Phase 18) is complete. One defect was found and fixed: unpublished books are now excluded from the dedicated Favorites page. Nine focused regression tests were added for that visibility rule, HTTP method restrictions, admin authorization, receipt formats and response types, upload cursor preservation, and reader resume clamping. No migration was created.
 Production preparation (Phase 19) is complete. Gunicorn and WhiteNoise are pinned, static files collect into ignored `staticfiles/`, production environment parsing and secure proxy behavior are configured, generic Arabic 404/500 pages exist, SQLite can use an environment-provided persistent path, and deployment steps are documented in `docs/DEPLOYMENT.md`. Protected media is not served by WhiteNoise. No migration was created and no deployment was performed.
+Free demo deployment and V1 acceptance (Phase 20) are complete. The application is live on PythonAnywhere Free at https://wahibalkabodi.pythonanywhere.com with `DEBUG=False`, the final host and trusted HTTPS origin configured, an external `SECRET_KEY`, working WSGI configuration, SQLite, and collected static files. The deployed acceptance journey passed for the homepage, RTL/static styling, developer footer, Django Admin and content creation, public catalog visibility, authentication and subscription gates, request approval and 30-day activation, protected reader/PDF access, reading progress, My Library, and Favorites. The direct raw `/media/books/pdfs/...` deployment-path test was intentionally skipped by the user; prior automated regression/security tests cover raw media blocking, but deployed raw-media-path behavior was not manually re-tested in Phase 20. No Phase 20 application code or migration was created.
 
 ## Tests and Verification
 
@@ -215,6 +217,7 @@ Environment verification completed:
 Application tests:
 - Django system check (python manage.py check) passed.
 - Phase 19 final full suite passed: 311 tests in 367.698s.
+- The last fully automated regression baseline, after the developer footer addition, passed: 312 tests.
 - Final standalone suites passed: accounts 19 in 17.983s; catalog 57 in 19.054s; subscriptions 92 in 134.206s; reading 129 in 192.752s; core 14 in 7.035s.
 - Default Django system check passed with no issues.
 - `check --deploy` reported only the intentionally deferred HSTS warning.
@@ -239,8 +242,6 @@ Deferred from V1:
 
 ## Exact Next Step
 
-Wait for explicit user approval to begin:
-
-Phase 20 - Free Demo Deployment and V1 Acceptance
-
-Do not perform Phase 20 implementation before approval.
+V1 and Phase 20 are complete. Maintain the deployed demo as needed, and wait
+for explicit user approval before starting any new phase, V2 work, or deployment
+change.

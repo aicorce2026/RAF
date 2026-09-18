@@ -47,19 +47,13 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 19 - Production and Deployment Preparation
+Phase: 20 - Free Demo Deployment and V1 Acceptance
 
 Current phase status:
 
 COMPLETE
 
-Next phase:
-
-Phase: 20 - Free Demo Deployment and V1 Acceptance
-
-Next phase status:
-
-NOT_STARTED
+Next phase: None approved
 
 Current branch:
 
@@ -142,6 +136,7 @@ My Library dashboard (Phase 16) is fully implemented at /reading/library/. It re
 Validation and security hardening (Phase 17) is complete. Receipt uploads are restricted to PDF/JPG/JPEG/PNG files up to 5 MiB; Book uploads are restricted to PDF files up to 50 MiB. Empty files and extension/signature mismatches are rejected through model validation. Redirect validation uses Django's safe utility, receipts remain staff-only with traversal protection, broad admin exception swallowing was removed, and DEBUG=False configuration was verified with an external SECRET_KEY. No migration was created. The full suite passes 302 tests in 335.631s.
 Full regression testing (Phase 18) is complete. The clean Phase 17 baseline passed 302 tests in 334.027s. The audit found and fixed one defect: the dedicated Favorites page did not exclude unpublished books. Nine focused tests now cover that regression, upload cursor preservation, valid JPEG/PNG receipt behavior and MIME types, unsupported registration/request methods, ordinary-user admin denial, and reader resume clamping. Final verification passed 311 tests in 351.697s. No migration was created, and both default and DEBUG=False system checks pass.
 Production preparation (Phase 19) is complete. Gunicorn 26.2.0 and WhiteNoise 6.12.0 are pinned. Static files collect into ignored `staticfiles/` and are served with compressed manifest storage; protected PDFs and receipts remain outside WhiteNoise. Environment-driven trusted origins, SQLite path, SSL redirect, secure cookies, proxy HTTPS detection, and opt-in HSTS are configured. Generic Arabic 404/500 templates and `docs/DEPLOYMENT.md` were added. Fresh-database migrations, production checks, collectstatic, and all 311 tests passed. The only deployment warning is HSTS, intentionally deferred until Phase 20 verifies the final HTTPS hostname. No deployment or provider-specific file was created.
+Phase 20 is complete. V1 is deployed on PythonAnywhere Free at https://wahibalkabodi.pythonanywhere.com. The deployed HTTPS, static/RTL, footer, admin/content, public catalog, authentication, subscription, protected reader/PDF, reading-progress, My Library, and Favorites acceptance checks passed. The raw `/media/books/pdfs/...` deployment URL bypass check was intentionally skipped by the user; automated regression/security tests previously cover raw media blocking, but deployed raw-media-path behavior was not manually re-tested during Phase 20. The last fully automated regression baseline is 312 tests after the developer footer addition. No application code or migration was added for Phase 20.
 
 ---
 
@@ -165,25 +160,19 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 19 is complete.
+Phase 20 and V1 are complete. The free demo is live at:
 
-The next implementation phase is:
+https://wahibalkabodi.pythonanywhere.com
 
-Phase 20 - Free Demo Deployment and V1 Acceptance
-
-Do not begin Phase 20 until the user explicitly approves continuing.
+No later implementation phase is approved.
 
 ---
 
 ## Exact Next Action
 
-Wait for explicit user approval.
+Maintain the deployed demo as needed and wait for explicit user direction.
 
-After approval, begin:
-
-Phase 20 - Free Demo Deployment and V1 Acceptance
-
-Do not implement any later phase.
+Do not begin V2, another phase, or another deployment change automatically.
 
 ---
 
@@ -191,10 +180,9 @@ Do not implement any later phase.
 
 Do NOT:
 
-- create Django applications yet
-- create a custom User model (use Django's built-in User instead)
-- create models yet
-- create database migrations yet
+- begin V2 or add unapproved features
+- replace Django's built-in User model
+- create new models or migrations without an approved phase
 - install additional packages
 - add React, Node.js, Docker or other frameworks
 - change the approved V1 architecture

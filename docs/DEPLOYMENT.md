@@ -1,18 +1,38 @@
-# Deployment Preparation
+# Deployment
 
-This document describes the generic production path prepared in Phase 19.
-Phase 20 must still select a free hosting provider, configure its final domain,
-and perform the actual deployment.
+Phase 19 prepared the production configuration. Phase 20 deployed and accepted
+the V1 free demonstration.
+
+## Live demo
+
+https://wahibalkabodi.pythonanywhere.com
+
+This is a free/demo deployment on PythonAnywhere Free.
+
+- PythonAnywhere username: `wahibalkabodi`
+- Project path: `/home/wahibalkabodi/RAF`
+- Virtual environment: `/home/wahibalkabodi/.virtualenvs/rafenv`
+- Python: 3.13.1
+- Django: 5.2.17
+- Database: SQLite
+- WSGI configuration: working
+- `DEBUG=False`
+- `ALLOWED_HOSTS=wahibalkabodi.pythonanywhere.com`
+- `CSRF_TRUSTED_ORIGINS=https://wahibalkabodi.pythonanywhere.com`
+- The real `SECRET_KEY` is loaded outside the repository.
+- No real secret was committed.
+- HSTS remains disabled for this demo with `SECURE_HSTS_SECONDS=0`.
 
 ## Runtime assumptions
 
-- Python 3.14 is the verified project runtime.
+- Python 3.14 is the verified local development runtime; the deployed
+  PythonAnywhere runtime is Python 3.13.1.
 - The production host must support Python and a Linux-compatible WSGI process.
 - Django remains pinned to 5.2.17.
-- Gunicorn serves the Django WSGI application.
+- The PythonAnywhere WSGI configuration serves the deployed application;
+  Gunicorn remains available for compatible generic Linux deployments.
 - WhiteNoise serves collected static assets only.
-- SQLite remains the V1 database unless the selected Phase 20 provider requires
-  a documented change.
+- SQLite is the V1 demo database.
 
 ## Installation
 
@@ -42,7 +62,8 @@ ALLOWED_HOSTS=example.com,www.example.com
 - `SECURE_SSL_REDIRECT`: defaults to enabled when `DEBUG=False`; it may be
   explicitly controlled for a provider-specific setup.
 - `SECURE_HSTS_SECONDS`: defaults to `0`. Set a positive value only after the
-  final HTTPS domain and subdomain policy have been verified in Phase 20.
+  HTTPS domain and subdomain policy have been verified for a long-term
+  production deployment. It remains `0` for the current demo.
 
 `SECURE_PROXY_SSL_HEADER` is configured for hosts that send
 `X-Forwarded-Proto: https`. Secure session and CSRF cookies are enabled whenever
@@ -74,8 +95,8 @@ Start the production WSGI server:
 gunicorn config.wsgi:application
 ```
 
-The Phase 20 provider may require a bind option based on its assigned port, but
-no provider-specific start file is included in Phase 19.
+Other hosting providers may require a bind option based on their assigned port.
+PythonAnywhere uses its configured WSGI file for the current demo.
 
 ## Static and uploaded media
 
@@ -89,19 +110,30 @@ protected application data:
 - direct `/media/books/pdfs/` requests remain blocked;
 - receipts are streamed only through the staff-protected receipt endpoint.
 
-Free or ephemeral hosting may erase the SQLite database and uploaded media on
-restart or redeploy. Phase 20 must choose a provider and determine whether it
-offers persistent storage for both `DATABASE_PATH` and `MEDIA_ROOT`. Until that
-is known, uploads and SQLite data must be treated as non-persistent on such a
-host. No external object storage is introduced in Phase 19.
+Free hosting has resource and storage limitations. The current PythonAnywhere
+demo uses SQLite and locally uploaded media. This is acceptable for the demo,
+but a long-term production architecture should use appropriately managed
+persistent database and uploaded-media storage. No external object storage was
+introduced for V1.
 
-## Phase 20 decisions still required
+## Phase 20 deployment result
 
-- Select the free hosting provider.
-- Configure its final hostname in `ALLOWED_HOSTS`.
-- Configure HTTPS origins in `CSRF_TRUSTED_ORIGINS` when required.
-- Confirm the provider sends `X-Forwarded-Proto` correctly and strips any
-  untrusted client-supplied value before forwarding requests.
-- Decide whether persistent SQLite and media storage are available.
-- Enable and tune HSTS only after the final HTTPS hostname is verified.
-- Run the deployed V1 acceptance journey before declaring Phase 20 complete.
+- Static collection succeeded: 128 files copied and 384 post-processed.
+- The observed collected-static size was approximately 5.1 MiB.
+- No `/media/` static mapping was added intentionally. Protected uploads remain
+  behind application-controlled endpoints.
+- The deployed acceptance journey passed for HTTPS, static/RTL rendering, the
+  developer footer, Django Admin and content creation, public catalog display,
+  login and subscription gates, subscription approval, protected reading,
+  reading progress, My Library, and Favorites.
+- The raw `/media/books/pdfs/...` deployment URL bypass test was intentionally
+  skipped by the user. Automated regression/security tests previously cover raw
+  media blocking, but deployed raw-media-path behavior was not manually
+  re-tested during Phase 20.
+
+## Free demo limitations
+
+PythonAnywhere Free has resource and storage limitations. SQLite and locally
+uploaded media are acceptable for this demonstration, but they are not the
+recommended long-term production architecture. A long-term production system
+should use appropriately managed persistent database and uploaded-media storage.
