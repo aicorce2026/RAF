@@ -1157,11 +1157,11 @@ python manage.py test -v 2
 
 Result:
 Reading: Ran 26 tests... OK
-Subscriptions: Ran 66 tests... OK
+Subscriptions: Ran 74 tests... OK
 Catalog: Ran 50 tests... OK
 Core: Ran 14 tests... OK
 Accounts: Ran 10 tests... OK
-Full Suite: Ran 166 tests in 118.205s... OK
+Full Suite: Ran 174 tests in 118.205s... OK
 
 Status:
 PASSED

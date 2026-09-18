@@ -19,6 +19,7 @@ from django.urls import path, include, re_path
 from django.http import HttpResponseForbidden
 from django.conf import settings
 from django.conf.urls.static import static
+from apps.subscriptions.views import protected_receipt_file
 
 
 def _blocked_book_pdf(request, path):
@@ -44,7 +45,7 @@ urlpatterns = [
     re_path(r'^media/books/pdfs/(?P<path>.+)$', _blocked_book_pdf),
     
     # Protect subscription receipts
-    re_path(r'^media/subscriptions/receipts/(?P<path>.+)$', __import__('apps.subscriptions.views', fromlist=['protected_receipt_file']).protected_receipt_file),
+    re_path(r'^media/subscriptions/receipts/(?P<path>.+)$', protected_receipt_file),
 ]
 
 # Dev media serving for all other media (receipts served only via admin, not public templates)
