@@ -2,8 +2,12 @@ from django.test import TestCase, Client
 from django.db.models import ProtectedError
 from django.db import IntegrityError
 from django.contrib.admin.sites import site
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse, resolve
 from django.contrib.auth import get_user_model
+from django.test import RequestFactory
+from apps.core.validators import BOOK_PDF_MAX_SIZE
 from .models import Author, Category, Book
 
 class CatalogModelTests(TestCase):
@@ -122,6 +126,63 @@ class CatalogAdminTests(TestCase):
         url = reverse('admin:catalog_book_changelist')
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_book_admin_form_rejects_fake_pdf_content(self):
+        author = Author.objects.create(name='Upload Admin Author')
+        category = Category.objects.create(name='Upload Admin Category')
+        request = RequestFactory().get('/admin/catalog/book/add/')
+        request.user = self.admin_user
+        form_class = site._registry[Book].get_form(request)
+        form = form_class(
+            data={
+                'title': 'Invalid Admin Upload',
+                'author': author.pk,
+                'category': category.pk,
+                'is_published': True,
+            },
+            files={
+                'pdf_file': SimpleUploadedFile(
+                    'fake.pdf', b'not a PDF', content_type='application/pdf'
+                ),
+            },
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn('pdf_file', form.errors)
+
+
+class BookUploadValidationTests(TestCase):
+    def setUp(self):
+        self.author = Author.objects.create(name='Validation Author')
+        self.category = Category.objects.create(name='Validation Category')
+
+    def _book(self, filename, content):
+        return Book(
+            title='Validated Book',
+            author=self.author,
+            category=self.category,
+            pdf_file=SimpleUploadedFile(filename, content),
+        )
+
+    def test_valid_pdf_passes_model_validation(self):
+        self._book('book.pdf', b'%PDF-1.4 content').full_clean()
+
+    def test_non_pdf_extension_is_rejected(self):
+        with self.assertRaises(ValidationError):
+            self._book('book.txt', b'%PDF-1.4 content').full_clean()
+
+    def test_fake_pdf_content_is_rejected(self):
+        with self.assertRaises(ValidationError):
+            self._book('book.pdf', b'not a PDF').full_clean()
+
+    def test_zero_byte_pdf_is_rejected(self):
+        with self.assertRaises(ValidationError):
+            self._book('book.pdf', b'').full_clean()
+
+    def test_oversized_pdf_is_rejected(self):
+        book = self._book('book.pdf', b'%PDF-1.4 content')
+        book.pdf_file.file.size = BOOK_PDF_MAX_SIZE + 1
+        with self.assertRaises(ValidationError):
+            book.full_clean()
 
 
 class CatalogViewTests(TestCase):

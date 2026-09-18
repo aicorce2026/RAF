@@ -1,8 +1,13 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import DatabaseError
 from django.utils import timezone
 from datetime import timedelta
+from unittest.mock import patch
+from apps.core.validators import RECEIPT_MAX_SIZE
 from .models import SubscriptionRequest, Subscription
 from .services import has_active_subscription, get_active_subscription
 from .decorators import active_subscription_required
@@ -187,6 +192,11 @@ class SubscriptionModelTests(TestCase):
         )
         self.assertFalse(sub.is_active())
 
+    def test_subscription_is_inactive_at_exact_end_time(self):
+        sub = self._make_subscription(start_offset=-1, end_offset=0)
+        with patch('apps.subscriptions.models.timezone.now', return_value=sub.end_at):
+            self.assertFalse(sub.is_active())
+
 
 # ---------------------------------------------------------------------------
 # Phase 11: User workflow tests
@@ -220,7 +230,7 @@ class SubscriptionRequestViewTests(TestCase):
     def test_authenticated_user_can_submit_valid_request(self):
         self.client.login(username='viewuser', password='testpass123')
         import io
-        fake_file = io.BytesIO(b'fake receipt content')
+        fake_file = io.BytesIO(b'%PDF-1.4 fake receipt content')
         fake_file.name = 'receipt.pdf'
         response = self.client.post(self.create_url, {
             'payment_method': 'bank_transfer',
@@ -232,7 +242,7 @@ class SubscriptionRequestViewTests(TestCase):
     def test_created_request_belongs_to_logged_in_user(self):
         self.client.login(username='viewuser', password='testpass123')
         import io
-        fake_file = io.BytesIO(b'fake receipt')
+        fake_file = io.BytesIO(b'%PDF-1.4 fake receipt')
         fake_file.name = 'r.pdf'
         self.client.post(self.create_url, {'payment_method': 'cash', 'receipt_file': fake_file})
         req = SubscriptionRequest.objects.get(user=self.user)
@@ -241,7 +251,7 @@ class SubscriptionRequestViewTests(TestCase):
     def test_new_request_status_defaults_to_pending(self):
         self.client.login(username='viewuser', password='testpass123')
         import io
-        fake_file = io.BytesIO(b'receipt')
+        fake_file = io.BytesIO(b'%PDF-1.4 receipt')
         fake_file.name = 'r.pdf'
         self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file})
         req = SubscriptionRequest.objects.get(user=self.user)
@@ -250,7 +260,7 @@ class SubscriptionRequestViewTests(TestCase):
     def test_user_cannot_forge_approved_status_via_post(self):
         self.client.login(username='viewuser', password='testpass123')
         import io
-        fake_file = io.BytesIO(b'receipt')
+        fake_file = io.BytesIO(b'%PDF-1.4 receipt')
         fake_file.name = 'r.pdf'
         self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file, 'status': 'APPROVED'})
         req = SubscriptionRequest.objects.get(user=self.user)
@@ -259,7 +269,7 @@ class SubscriptionRequestViewTests(TestCase):
     def test_user_cannot_forge_reviewed_by_via_post(self):
         self.client.login(username='viewuser', password='testpass123')
         import io
-        fake_file = io.BytesIO(b'receipt')
+        fake_file = io.BytesIO(b'%PDF-1.4 receipt')
         fake_file.name = 'r.pdf'
         self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file, 'reviewed_by': self.other_user.pk})
         req = SubscriptionRequest.objects.get(user=self.user)
@@ -268,7 +278,7 @@ class SubscriptionRequestViewTests(TestCase):
     def test_user_cannot_set_another_user_via_post(self):
         self.client.login(username='viewuser', password='testpass123')
         import io
-        fake_file = io.BytesIO(b'receipt')
+        fake_file = io.BytesIO(b'%PDF-1.4 receipt')
         fake_file.name = 'r.pdf'
         self.client.post(self.create_url, {'payment_method': 'bank_transfer', 'receipt_file': fake_file, 'user': self.other_user.pk})
         for req in SubscriptionRequest.objects.all():
@@ -312,6 +322,80 @@ class SubscriptionRequestViewTests(TestCase):
         self.client.login(username='viewuser', password='testpass123')
         response = self.client.get(self.list_url)
         self.assertContains(response, 'لا توجد طلبات اشتراك')
+
+
+    def _post_receipt(self, filename, content, payment_method='bank_transfer'):
+        self.client.login(username='viewuser', password='testpass123')
+        upload = SimpleUploadedFile(filename, content)
+        return self.client.post(self.create_url, {
+            'payment_method': payment_method,
+            'receipt_file': upload,
+        })
+
+    def test_invalid_payment_method_is_rejected(self):
+        response = self._post_receipt('receipt.pdf', b'%PDF-1.4 receipt', 'crypto')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_invalid_receipt_extension_is_rejected(self):
+        response = self._post_receipt('receipt.exe', b'%PDF-1.4 receipt')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_receipt_content_must_match_extension(self):
+        response = self._post_receipt('receipt.pdf', b'not a real PDF')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_zero_byte_receipt_is_rejected(self):
+        response = self._post_receipt('receipt.png', b'')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_oversized_receipt_is_rejected(self):
+        self.client.login(username='viewuser', password='testpass123')
+        upload = SimpleUploadedFile(
+            'receipt.pdf',
+            b'%PDF-' + (b'x' * RECEIPT_MAX_SIZE),
+        )
+        response = self.client.post(self.create_url, {
+            'payment_method': 'bank_transfer',
+            'receipt_file': upload,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_valid_jpeg_receipt_is_accepted(self):
+        response = self._post_receipt('receipt.jpg', b'\xff\xd8\xff receipt')
+        self.assertRedirects(response, self.list_url)
+        self.assertEqual(SubscriptionRequest.objects.count(), 1)
+
+    def test_receipt_validation_runs_on_model_full_clean(self):
+        sub_request = SubscriptionRequest(
+            user=self.user,
+            payment_method='bank_transfer',
+            receipt_file=SimpleUploadedFile('receipt.pdf', b'not a PDF'),
+        )
+        with self.assertRaises(ValidationError):
+            sub_request.full_clean()
+
+    def test_get_request_form_does_not_create_request(self):
+        self.client.login(username='viewuser', password='testpass123')
+        response = self.client.get(self.create_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(SubscriptionRequest.objects.exists())
+
+    def test_request_creation_requires_csrf(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user)
+        response = csrf_client.post(self.create_url, {
+            'payment_method': 'bank_transfer',
+            'receipt_file': SimpleUploadedFile(
+                'receipt.pdf', b'%PDF-1.4 receipt'
+            ),
+        })
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(SubscriptionRequest.objects.exists())
 
 
 # ---------------------------------------------------------------------------
@@ -417,6 +501,19 @@ class SubscriptionAdminWorkflowTests(TestCase):
         req.refresh_from_db()
         self.assertEqual(req.status, SubscriptionRequest.Status.REJECTED)
         self.assertEqual(req.reviewed_at, original_reviewed_at)
+
+
+    def test_approval_database_error_is_not_silently_swallowed(self):
+        req = self._pending_request()
+        with patch(
+            'apps.subscriptions.admin.Subscription.objects.create',
+            side_effect=DatabaseError('simulated database failure'),
+        ):
+            with self.assertRaises(DatabaseError):
+                self._run_action('approve', [req.pk])
+        req.refresh_from_db()
+        self.assertEqual(req.status, SubscriptionRequest.Status.PENDING)
+        self.assertIsNone(req.reviewed_by)
 
 
 # ---------------------------------------------------------------------------
@@ -643,7 +740,6 @@ class PublicCatalogRegressionTests(TestCase):
 
 import tempfile
 import os
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp())
@@ -705,6 +801,20 @@ class ProtectedReceiptEndpointTests(TestCase):
         self.client.login(username='staffuser', password='testpass123')
         response = self.client.get('/media/subscriptions/receipts/nonexistent.pdf')
         self.assertEqual(response.status_code, 404)
+
+    def test_receipt_path_traversal_returns_404(self):
+        self.client.login(username='staffuser', password='testpass123')
+        response = self.client.get(
+            '/media/subscriptions/receipts/%2e%2e%2fsettings.py'
+        )
+        self.assertEqual(response.status_code, 404)
+
+    def test_nested_receipt_path_returns_404(self):
+        self.client.login(username='staffuser', password='testpass123')
+        response = self.client.get(
+            '/media/subscriptions/receipts/nested/test_receipt.pdf'
+        )
+        self.assertEqual(response.status_code, 404)
         
     def test_receipt_response_headers_are_safe(self):
         self.client.login(username='staffuser', password='testpass123')
@@ -722,4 +832,3 @@ class ProtectedReceiptEndpointTests(TestCase):
     def test_direct_book_pdf_path_remains_blocked(self):
         response = self.client.get('/media/books/pdfs/somebook.pdf')
         self.assertEqual(response.status_code, 403)
-

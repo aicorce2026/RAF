@@ -1402,3 +1402,132 @@ Results:
 
 Status:
 PASSED
+
+---
+
+## Phase 17 - Validation and Security Hardening
+
+Date:
+2026-09-18
+
+Status:
+COMPLETE
+
+### Hardening Implemented
+
+- Added reusable server-side upload validation without new dependencies.
+- Receipt policy: PDF, JPG/JPEG, or PNG; maximum 5 MiB; empty files rejected; extension and file signature must match.
+- Book PDF policy: PDF only; maximum 50 MiB; empty files rejected; filename extension and `%PDF-` signature required.
+- Model validation covers Django Admin and the subscription request ModelForm; no model field or migration changed.
+- Favorite redirects now use `url_has_allowed_host_and_scheme()`; external and protocol-relative destinations fall back to the book detail page.
+- Receipt paths reject nested and traversal-like values before database/storage lookup.
+- Receipt responses remain staff-only attachments with `nosniff` and `private, no-store`.
+- Protected PDF responses remain subscription-gated inline PDF responses with `nosniff` and `private, no-store`.
+- Registration and subscription creation explicitly allow only GET/POST; logout, Favorite changes, and ReadingProgress changes remain POST-only.
+- CSRF enforcement was verified with clients that enforce CSRF checks.
+- The subscription admin approval action no longer swallows broad exceptions; transaction rollback and error propagation are tested.
+- Subscription activity consistently uses `start_at <= now < end_at`.
+- DEBUG and ALLOWED_HOSTS are environment-aware; DEBUG=False was verified with an external SECRET_KEY.
+
+### Intermediate Verification Issue
+
+- An initial focused run found 107 tests with one failure in `test_oversized_receipt_is_rejected`.
+- Cause: Django's multipart encoder recalculated the upload size, so the test's synthetic `size` override did not reach the validator.
+- Resolution: the test now submits an actual payload larger than 5 MiB.
+- The corrected test passed, and the later standalone and full suites passed completely.
+
+### Django System Checks
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py check`
+
+`DEBUG=False` with a verification-only external `SECRET_KEY` and explicit `ALLOWED_HOSTS`: `.venv\Scripts\python.exe manage.py check`
+
+Results:
+
+- Default development check: System check identified no issues (0 silenced).
+- DEBUG=False check: System check identified no issues (0 silenced).
+
+Status:
+PASSED
+
+---
+
+### Application Test Suites
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py test apps.reading -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.subscriptions -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.catalog -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.core -v 2`
+
+`.venv\Scripts\python.exe manage.py test apps.accounts -v 2`
+
+Results:
+
+- Reading: Ran 127 tests in 180.670s... OK
+- Subscriptions: Ran 87 tests in 117.620s... OK
+- Catalog: Ran 56 tests in 9.436s... OK
+- Core: Ran 14 tests in 6.669s... OK
+- Accounts: Ran 18 tests in 17.157s... OK
+
+Status:
+PASSED
+
+---
+
+### Full Test Suite
+
+Command:
+`.venv\Scripts\python.exe manage.py test`
+
+Result:
+Ran 302 tests in 335.631s... OK
+
+Status:
+PASSED
+
+---
+
+### Security Verification
+
+- No GET endpoint modifies application state: CONFIRMED
+- User-specific subscription requests, Favorites, ReadingProgress, and My Library data remain filtered by `request.user`: CONFIRMED
+- Forged subscription user/status/reviewer fields are ignored: CONFIRMED
+- Forged Favorite and ReadingProgress ownership fields are ignored: CONFIRMED
+- Unpublished books remain hidden from all public, personal, reader, and PDF views: CONFIRMED
+- Future and expired subscriptions cannot obtain reader/PDF/progress access: CONFIRMED
+- Saved progress and Favorites cannot bypass PDF subscription checks: CONFIRMED
+- Direct `/media/books/pdfs/` access remains blocked: CONFIRMED
+- Public and non-staff users cannot retrieve receipts: CONFIRMED
+- Receipt traversal and nested path attempts return 404: CONFIRMED
+- Unsafe login and Favorite `next` values are rejected: CONFIRMED
+- CSRF middleware remains enabled and no `csrf_exempt` usage exists: CONFIRMED
+- No template uses `|safe`, `mark_safe`, or `autoescape off`: CONFIRMED
+- No runtime/template code exposes `pdf_file.url` or `receipt_file.url`: CONFIRMED
+- Secret scan found only the explicitly named development fallback, environment references, placeholders, and test credentials: CONFIRMED
+- `.env`, `db.sqlite3`, uploaded media, and `.venv` remain ignored: CONFIRMED
+
+---
+
+### Final Verification
+
+Commands:
+
+`.venv\Scripts\python.exe manage.py makemigrations --check --dry-run`
+
+`git diff --check`
+
+Results:
+
+- Migration consistency check reported no changes detected.
+- Git diff check passed; only informational LF-to-CRLF warnings were emitted.
+- No migration was created for Phase 17.
+
+Status:
+PASSED

@@ -24,6 +24,9 @@ Phase: 16 - My Library Dashboard
 Status: COMPLETE
 
 Phase: 17 - Validation and Security Hardening
+Status: COMPLETE
+
+Phase: 18 - Full Test Suite and Regression Pass
 Status: NOT_STARTED
 
 Current branch: main
@@ -159,13 +162,13 @@ These models have been implemented.
 
 ## Current Objective
 
-Phase 16 - My Library Dashboard is complete.
+Phase 17 - Validation and Security Hardening is complete.
 
 The next phase is:
 
-Phase 17 - Validation and Security Hardening
+Phase 18 - Full Test Suite and Regression Pass
 
-Phase 17 is waiting for explicit user approval before implementation begins.
+Phase 18 is waiting for explicit user approval before implementation begins.
 
 ## Known Issues
 
@@ -186,6 +189,7 @@ Subscription access control implemented: has_active_subscription() service in se
 Protected PDF reader implemented in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
 Reading progress (Phase 15) implemented in apps/reading: ReadingProgress model (user+book+current_page+created_at+updated_at), migration 0002_readingprogress.py, progress_update endpoint at /reading/<pk>/progress/ (POST-only, active subscription required). Reader resumes from saved page. CSRF protected via hidden form + X-CSRFToken header. Server-side page validation (must be integer >= 1). Ownership always from request.user.
 My Library dashboard (Phase 16) implemented at /reading/library/: login required, but no active subscription required to view. It displays only the authenticated user's published-book reading progress and favorites using select_related queries, plus existing subscription status. Continue Reading links use the protected reading:reader route, so PDF access remains subscription-protected.
+Validation and security hardening (Phase 17) is complete. Receipt uploads accept only PDF/JPG/JPEG/PNG files up to 5 MiB, and Book uploads accept only PDF files up to 50 MiB; both reject empty files and verify lightweight file signatures. Safe redirects use Django's host-aware utility. Receipt paths reject traversal/nested values, state-changing endpoints retain CSRF and method protections, and environment-driven DEBUG/ALLOWED_HOSTS configuration supports DEBUG=False when an external SECRET_KEY is supplied.
 
 ## Tests and Verification
 
@@ -202,7 +206,7 @@ Environment verification completed:
 
 Application tests:
 - Django system check (python manage.py check) passed.
-- Phase 16 full suite passed: 272 tests in 301.105s.
+- Phase 17 full suite passed: 302 tests in 335.631s.
 - Development server (python manage.py runserver) starts successfully.
 - Default Django install page is reachable.
 
@@ -224,6 +228,6 @@ Deferred from V1:
 
 Wait for explicit user approval to begin:
 
-Phase 17 - Validation and Security Hardening
+Phase 18 - Full Test Suite and Regression Pass
 
-Do not perform Phase 17 implementation before approval.
+Do not perform Phase 18 implementation before approval.

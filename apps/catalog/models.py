@@ -1,4 +1,7 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+
+from apps.core.validators import validate_book_pdf_upload
 
 class Author(models.Model):
     name = models.CharField(max_length=200)
@@ -37,6 +40,14 @@ class Book(models.Model):
 
     class Meta:
         ordering = ["title"]
+
+    def clean(self):
+        super().clean()
+        if self.pdf_file:
+            try:
+                validate_book_pdf_upload(self.pdf_file)
+            except ValidationError as error:
+                raise ValidationError({"pdf_file": error}) from error
 
     def __str__(self):
         return self.title

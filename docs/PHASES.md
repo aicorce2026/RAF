@@ -579,7 +579,7 @@ Acceptance Criteria:
 
 ## Phase 17 - Validation and Security Hardening
 
-Status: NOT_STARTED
+Status: COMPLETE
 
 Goal:
 Review V1 security before deployment.
@@ -599,6 +599,18 @@ Review Areas:
 - SECRET_KEY.
 - DEBUG.
 - ALLOWED_HOSTS.
+
+Implementation:
+
+- Receipt uploads allow PDF, JPG/JPEG, and PNG files up to 5 MiB.
+- Book uploads allow PDF files up to 50 MiB.
+- Both upload paths reject empty files and verify extension plus file signature.
+- Validation runs through model validation, including Django Admin and the subscription request ModelForm.
+- User-controlled redirects use Django's host-aware safe redirect validation.
+- Receipt media access remains staff-only and rejects traversal/nested path values.
+- State-changing endpoints remain authenticated, POST-only where appropriate, and CSRF-protected.
+- DEBUG and ALLOWED_HOSTS are environment-aware; DEBUG=False requires an external SECRET_KEY.
+- No model field changed and no migration was created.
 
 Acceptance Criteria:
 

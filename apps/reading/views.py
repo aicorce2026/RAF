@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import FileResponse, Http404, JsonResponse
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from apps.catalog.models import Book
@@ -116,8 +117,11 @@ def favorite_toggle(request, book_pk):
         Favorite.objects.create(user=request.user, book=book)
 
     next_url = request.POST.get('next')
-    # Extremely basic safe redirect to local paths only
-    if next_url and next_url.startswith('/') and not next_url.startswith('//'):
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
         return redirect(next_url)
     return redirect('catalog:book_detail', pk=book.pk)
 

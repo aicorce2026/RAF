@@ -13,25 +13,21 @@ def approve_requests(modeladmin, request, queryset):
         if sub_request.status != SubscriptionRequest.Status.PENDING:
             skipped_count += 1
             continue
-        try:
-            with transaction.atomic():
-                now = timezone.now()
-                sub_request.status = SubscriptionRequest.Status.APPROVED
-                sub_request.reviewed_by = request.user
-                sub_request.reviewed_at = now
-                sub_request.save()
-                # Guard against duplicate subscriptions (idempotent)
-                if not hasattr(sub_request, 'subscription'):
-                    Subscription.objects.create(
-                        user=sub_request.user,
-                        request=sub_request,
-                        start_at=now,
-                        end_at=now + timedelta(days=30),
-                    )
-            approved_count += 1
-        except Exception:
-            # OneToOne already exists — idempotent protection
-            skipped_count += 1
+        with transaction.atomic():
+            now = timezone.now()
+            sub_request.status = SubscriptionRequest.Status.APPROVED
+            sub_request.reviewed_by = request.user
+            sub_request.reviewed_at = now
+            sub_request.save()
+            # Guard against duplicate subscriptions (idempotent).
+            if not hasattr(sub_request, 'subscription'):
+                Subscription.objects.create(
+                    user=sub_request.user,
+                    request=sub_request,
+                    start_at=now,
+                    end_at=now + timedelta(days=30),
+                )
+        approved_count += 1
 
     if approved_count:
         messages.success(request, f'تم قبول {approved_count} طلب/طلبات بنجاح وإنشاء الاشتراك.')

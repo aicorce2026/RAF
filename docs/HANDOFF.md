@@ -47,7 +47,7 @@ Report the inconsistency before making changes.
 
 Current phase:
 
-Phase: 16 - My Library Dashboard
+Phase: 17 - Validation and Security Hardening
 
 Current phase status:
 
@@ -55,7 +55,7 @@ COMPLETE
 
 Next phase:
 
-Phase: 17 - Validation and Security Hardening
+Phase: 18 - Full Test Suite and Regression Pass
 
 Next phase status:
 
@@ -139,6 +139,7 @@ Subscription access control: has_active_subscription() in services.py, active_su
 Protected PDF reader in apps/reading: /read/<pk>/ (reader page), /read/<pk>/file/ (streaming endpoint). Direct /media/books/pdfs/ access is blocked by a 403-returning URL interceptor in config/urls.py. PDF.js loaded via CDN. Favorites feature is fully implemented, allowing users to add and remove books from their favorites.
 Reading progress (Phase 15) is fully implemented: ReadingProgress model in apps/reading/models.py, migration apps/reading/migrations/0002_readingprogress.py, progress_update endpoint at /reading/<pk>/progress/ (POST-only, active subscription required). Reader resumes from saved page (context variable initial_page). CSRF protected via hidden form + X-CSRFToken header. Server-side page validation (page must be integer >= 1). Ownership always derived from request.user. Django Admin registered in reading/admin.py.
 My Library dashboard (Phase 16) is fully implemented at /reading/library/. It requires login but not an active subscription to view. Continue Reading shows the current user's published-book ReadingProgress and links to the protected reader. Favorites shows the current user's published-book Favorite records and links to catalog details. Subscription status reuses get_active_subscription(). Unpublished books and other users' data are excluded server-side. No new model or migration was created.
+Validation and security hardening (Phase 17) is complete. Receipt uploads are restricted to PDF/JPG/JPEG/PNG files up to 5 MiB; Book uploads are restricted to PDF files up to 50 MiB. Empty files and extension/signature mismatches are rejected through model validation. Redirect validation uses Django's safe utility, receipts remain staff-only with traversal protection, broad admin exception swallowing was removed, and DEBUG=False configuration was verified with an external SECRET_KEY. No migration was created. The full suite passes 302 tests in 335.631s.
 
 ---
 
@@ -162,13 +163,13 @@ Completed and reviewed:
 
 ## Current Objective
 
-Phase 16 is complete.
+Phase 17 is complete.
 
 The next implementation phase is:
 
-Phase 17 - Validation and Security Hardening
+Phase 18 - Full Test Suite and Regression Pass
 
-Do not begin Phase 17 until the user explicitly approves continuing.
+Do not begin Phase 18 until the user explicitly approves continuing.
 
 ---
 
@@ -178,7 +179,7 @@ Wait for explicit user approval.
 
 After approval, begin:
 
-Phase 17 - Validation and Security Hardening
+Phase 18 - Full Test Suite and Regression Pass
 
 Do not implement any later phase.
 

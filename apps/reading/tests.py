@@ -455,6 +455,19 @@ class FavoriteToggleTests(TestCase):
         expected_url = reverse('catalog:book_detail', args=[self.book.pk])
         self.assertRedirects(response, expected_url, fetch_redirect_response=False)
 
+    def test_protocol_relative_redirect_falls_back(self):
+        self.client.login(username='toggle_user', password='testpass123')
+        response = self.client.post(self.toggle_url, {'next': '//evil.com/path'})
+        expected_url = reverse('catalog:book_detail', args=[self.book.pk])
+        self.assertRedirects(response, expected_url, fetch_redirect_response=False)
+
+    def test_favorite_toggle_requires_csrf(self):
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user)
+        response = csrf_client.post(self.toggle_url)
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(Favorite.objects.exists())
+
     def test_post_cannot_forge_another_users_favorite_ownership(self):
         other_user = make_user('other_user')
         self.client.login(username='toggle_user', password='testpass123')
@@ -749,6 +762,14 @@ class ProgressUpdateEndpointTests(TestCase):
         rp = ReadingProgress.objects.first()
         self.assertEqual(rp.user, self.user1)
         self.assertEqual(rp.current_page, 4)
+
+    def test_progress_update_requires_csrf(self):
+        make_active_subscription(self.user1)
+        csrf_client = Client(enforce_csrf_checks=True)
+        csrf_client.force_login(self.user1)
+        response = csrf_client.post(self.progress_url, {'page': 4})
+        self.assertEqual(response.status_code, 403)
+        self.assertFalse(ReadingProgress.objects.exists())
 
     def test_active_subscriber_can_update_existing_progress(self):
         make_active_subscription(self.user1)

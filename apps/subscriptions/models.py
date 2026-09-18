@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.utils import timezone
+
+from apps.core.validators import validate_receipt_upload
 
 
 class SubscriptionRequest(models.Model):
@@ -37,6 +40,14 @@ class SubscriptionRequest(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    def clean(self):
+        super().clean()
+        if self.receipt_file:
+            try:
+                validate_receipt_upload(self.receipt_file)
+            except ValidationError as error:
+                raise ValidationError({"receipt_file": error}) from error
+
     def __str__(self):
         return f"SubscriptionRequest({self.user}, {self.status})"
 
@@ -66,4 +77,4 @@ class Subscription(models.Model):
 
     def is_active(self):
         now = timezone.now()
-        return self.start_at <= now <= self.end_at
+        return self.start_at <= now < self.end_at

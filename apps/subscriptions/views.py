@@ -1,14 +1,18 @@
+from pathlib import Path
+
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import FileResponse, Http404
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_http_methods
 from .forms import SubscriptionRequestForm
 from .models import SubscriptionRequest
 from .services import get_active_subscription
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
 def request_create(request):
     if request.method == 'POST':
         form = SubscriptionRequestForm(request.POST, request.FILES)
@@ -41,7 +45,12 @@ def protected_receipt_file(request, path):
     Anonymous users are redirected to the admin login page.
     Non-staff users are denied access.
     """
-    sub_request = SubscriptionRequest.objects.filter(receipt_file='subscriptions/receipts/' + path).first()
+    if "/" in path or "\\" in path or path in {".", ".."}:
+        raise Http404("إيصال الدفع غير موجود.")
+
+    sub_request = SubscriptionRequest.objects.filter(
+        receipt_file='subscriptions/receipts/' + path,
+    ).first()
     if not sub_request or not sub_request.receipt_file:
         raise Http404("إيصال الدفع غير موجود.")
 
@@ -50,9 +59,18 @@ def protected_receipt_file(request, path):
     except (FileNotFoundError, OSError):
         raise Http404("ملف الإيصال غير موجود على الخادم.")
 
-    response = FileResponse(file, content_type='application/pdf')
+    suffix = Path(sub_request.receipt_file.name).suffix.lower()
+    content_type = {
+        '.pdf': 'application/pdf',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.png': 'image/png',
+    }.get(suffix, 'application/octet-stream')
+    response = FileResponse(file, content_type=content_type)
     # Using attachment rather than inline for safety against uploaded content
-    response['Content-Disposition'] = f'attachment; filename="receipt-{sub_request.pk}.pdf"'
+    response['Content-Disposition'] = (
+        f'attachment; filename="receipt-{sub_request.pk}{suffix}"'
+    )
     response['X-Content-Type-Options'] = 'nosniff'
     response['Cache-Control'] = 'private, no-store'
     return response
